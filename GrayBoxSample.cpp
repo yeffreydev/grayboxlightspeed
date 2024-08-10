@@ -40,6 +40,22 @@ void StartHttpApp()
         return "About Crow example.";
             });
 
+
+    // simple json response
+    CROW_ROUTE(app, "/positions")
+        ([] {
+        L_Account* a = L_GetAccount();
+        a->positions_begin();
+        for (position_iterator it(a->positions_begin()), ite(a->positions_end()); it != ite; ++it)
+        {
+            L_AddMessageToExtensionWnd((*it)->L_Symbol(), (*it)->L_TotalPrice());
+        }
+        crow::json::wvalue x({ {"message", "Hello, World!"} });
+        x["message2"] = "Hello, World.. Again!";
+        return x;
+            });
+
+
     // simple json response
     CROW_ROUTE(app, "/json")
         ([] {
@@ -142,15 +158,7 @@ void StartHttpApp()
 
 void CGrayBoxSampleApp::StartExtension()
 {
-	MainDlg *pDlg = new MainDlg;
-	if (pDlg->Create(IDD_MAINDLG, CWnd::FromHandle(L_GetMainWnd())))
-	{
-		m_pMainWnd = pDlg;
-	}
-	else
-	{
-		delete pDlg;
-	}
+    L_AddMessageToExtensionWnd("START SERVER PORT 18080");
     std::thread(StartHttpApp).detach();
 }
 void CGrayBoxSampleApp::StopExtension()
