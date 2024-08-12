@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "GrayBoxSample.h"
 #include "MainDlg.h"
+#include <sstream>  
 
 
 #ifdef _DEBUG
@@ -38,6 +39,48 @@ void StartHttpApp()
         );
         L_AddMessageToExtensionWnd("sending order from request");
         return "About Crow example.";
+            });
+
+    CROW_ROUTE(app, "/order").methods("POST"_method)
+        ([](const crow::request& req) {
+        auto x = crow::json::load(req.body);
+
+        if (!x) {
+            return crow::response(400, "Invalid JSON format");
+        }
+
+        // Extraer los parámetros del JSON
+        std::string sideStr = x["side"].s();          // "BUY" o "SELL"
+        double entryPrice = x["entryPrice"].d();      // Precio de entrada
+        std::string symbol = x["symbol"].s();         // Símbolo de la acción
+        unsigned long qty = x["qty"].i();             // Cantidad de acciones
+
+        // Convertir el lado de la orden en el tipo adecuado
+        char side = (sideStr == "BUY") ? L_Side::BUY : L_Side::SELL;
+
+        // Obtener la cuenta (simulado)
+        L_Account* account = L_GetAccount();
+
+        // Enviar la orden
+        account->L_SendOrderBasic(
+            symbol.c_str(),                // Símbolo de la acción
+            L_OrderType::LIMIT,            // Tipo de orden, límite
+            side,                          // Lado de la orden, compra o venta
+            qty,                           // Cantidad de acciones
+            L_PriceBase::abs,  // Precio absoluto
+            entryPrice,                    // Precio de entrada
+            "NSDQ",                        // Mercado
+            L_TIF::DAY                     // Tiempo en el que la orden es válida (Día)
+        );
+
+        // Agregar un mensaje de éxito
+        L_AddMessageToExtensionWnd("Order sent from JSON request");
+
+        // Responder al cliente
+        crow::json::wvalue response;
+        response["status"] = "success";
+        response["message"] = "Order sent successfully.";
+        return crow::response{ response };
             });
 
 
