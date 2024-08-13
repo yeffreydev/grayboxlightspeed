@@ -31,23 +31,25 @@ agregar la carpeta include a la configuracion de c/c++ en includePath. en propie
 
 ## api service
 
-/positions
+PORT: 18080
+
+### GET /positions
 
 obtiene las posiciones de la cuenta.
 
-/order/<id>
+### GET /order/<id>
 
 obtiene la orden con el id.
 
-/position/<symbol>
+### GET /position/<symbol>
 
 obtiene la posicion de un simbolo.
 
-POST /order
+### POST /order
 
 parametros (symbol, entryPrice, qty, side("buy" o "sell));
 crea una orden y retorna el id. {id:1}
 
-DELETE /order/<id>
+### DELETE /order/<id>
 
 cancela la orden con el id.
