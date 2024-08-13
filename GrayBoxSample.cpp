@@ -53,7 +53,7 @@ void StartHttpApp()
             }
             catch (const std::exception& e) {
                 return "error";
-            }});
+            } });
 
     CROW_ROUTE(app, "/order").methods("POST"_method)([](const crow::request &req)
                                                      {
@@ -110,15 +110,32 @@ void StartHttpApp()
     CROW_ROUTE(app, "/positions")
     ([]
      {
-        L_Account* a = L_GetAccount();
-        a->positions_begin();
-        for (position_iterator it(a->positions_begin()), ite(a->positions_end()); it != ite; ++it)
-        {
-            L_AddMessageToExtensionWnd((*it)->L_Symbol(), (*it)->L_TotalPrice());
-        }
-        crow::json::wvalue x({ {"message", "Hello, World!"} });
-        x["message2"] = "Hello, World.. Again!";
-        return x; });
+                // Obtén la cuenta
+                L_Account* account = L_GetAccount();
+
+                // Obtén el iterador de posiciones
+                position_iterator itStart = account->open_positions_begin();
+                position_iterator itEnd = account->open_positions_end();
+
+                // Crear un JSON array
+                crow::json::wvalue positions_json;
+               
+                std::vector<crow::json::wvalue> vec = {};
+
+                // Iterar sobre las posiciones
+                for (position_iterator it(itStart); it != itEnd; ++it)
+                {
+                    // Crear un JSON object para la posición
+
+                    crow::json::wvalue position_json;
+                    position_json["symbol"] = (*it)->L_Symbol(),
+                        // Agregar el JSON object a la lista de posiciones
+                    vec.push_back(position_json);
+                        
+                }
+                positions_json["positions"] = crow::json::wvalue::list(vec);
+                // Retorna el JSON con todas las posiciones
+                return positions_json; });
 
     // simple json response
     CROW_ROUTE(app, "/json")

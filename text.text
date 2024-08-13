@@ -1,0 +1,2502 @@
+ 
+Lightspeed Trader API Reference 
+1.6.0.0 
+LIGHTSPEED TRADER API REFERENCE ......................................................................................... 1 
+Functions ............................................................................................................................................................... 3 
+L_Application ............................................................................................................................................................. 3 
+L_Side ...................................................................................................................................................................... 11 
+L_Symbols ............................................................................................................................................................... 12 
+L_TimeUtil ............................................................................................................................................................... 12 
+L_DoubleUtil ............................................................................................................................................................ 13 
+Overview, double Type ....................................................................................................................................... 13 
+L_Observer .............................................................................................................................................................. 15 
+Overview, Observer and Observables ................................................................................................................. 15 
+Multithreading Note ........................................................................................................................................... 18 
+L_Thread .................................................................................................................................................................. 20 
+Overview, Multithreading ................................................................................................................................... 20 
+L_Sorter ................................................................................................................................................................... 22 
+Overview, L_Sort ................................................................................................................................................. 22 
+L_Memory ............................................................................................................................................................... 27 
+Account Classes ................................................................................................................................................... 28 
+Overview, Order Processing ................................................................................................................................ 28 
+Overview, Short Sale Management .................................................................................................................... 29 
+Multithreading Note ........................................................................................................................................... 29 
+L_Account ................................................................................................................................................................ 30 
+L_Position ................................................................................................................................................................ 36 
+L_Order ................................................................................................................................................................... 38 
+L_Execution ............................................................................................................................................................. 40 
+Market Data Classes ............................................................................................................................................ 41 
+Overview, Creating a Summary for L_SendOrder ............................................................................................... 41 
+L_Summary .............................................................................................................................................................. 41 
+L_ChartPoint ............................................................................................................................................................ 46 
+L_Chart .................................................................................................................................................................... 46 
+L_Quote ................................................................................................................................................................... 46 
+L_Trade .................................................................................................................................................................... 47 
+L_FullQuote ............................................................................................................................................................. 47 
+Observer Classes .................................................................................................................................................. 50 
+ 
+L_Observer .............................................................................................................................................................. 50 
+L_Observable ........................................................................................................................................................... 52 
+Thread Classes ..................................................................................................................................................... 53 
+L_Strand .................................................................................................................................................................. 53 
+L_Thread .................................................................................................................................................................. 54 
+L_Work .................................................................................................................................................................... 54 
+L_Port ...................................................................................................................................................................... 54 
+C_LibPort ................................................................................................................................................................. 55 
+C_StrandLocalPtr ..................................................................................................................................................... 56 
+Sorter Classes ...................................................................................................................................................... 57 
+C_SortOperator ....................................................................................................................................................... 57 
+C_LibSortOperator .................................................................................................................................................. 58 
+C_Sort ...................................................................................................................................................................... 58 
+Memory Classes ................................................................................................................................................... 60 
+L_Buffer ................................................................................................................................................................... 60 
+C_Ptr<T> .................................................................................................................................................................. 60 
+Message Classes .................................................................................................................................................. 61 
+L_Message ............................................................................................................................................................... 61 
+L_MsgError .............................................................................................................................................................. 61 
+L_MsgTrade ............................................................................................................................................................. 61 
+L_MsgTradeUpdate ................................................................................................................................................. 62 
+L_MsgTradeCorrection ............................................................................................................................................ 62 
+L_MsgTradeClosingReport ...................................................................................................................................... 63 
+L_MsgL1 .................................................................................................................................................................. 63 
+L_MsgL1Change ...................................................................................................................................................... 64 
+L_MsgL1Update....................................................................................................................................................... 65 
+L_MsgL2 .................................................................................................................................................................. 66 
+L_MsgL2Refresh ...................................................................................................................................................... 66 
+L_MsgL2Update....................................................................................................................................................... 67 
+L_MsgECNList .......................................................................................................................................................... 67 
+L_MsgECN ............................................................................................................................................................... 68 
+L_MsgECNUpdate .................................................................................................................................................... 69 
+L_MsgMarketStatus ................................................................................................................................................ 69 
+L_MsgStockHalted ................................................................................................................................................... 69 
+L_MsgStockResumed .............................................................................................................................................. 70 
+L_MsgDirectQuotesLost .......................................................................................................................................... 70 
+L_MsgOrderImbalance ............................................................................................................................................ 70 
+L_MsgChartSnapshot .............................................................................................................................................. 71 
+ 
+L_MsgChartUpdate ................................................................................................................................................. 71 
+L_MsgIndex ............................................................................................................................................................. 71 
+L_MsgIndexUpdate ................................................................................................................................................. 72 
+L_MsgIndicationUpdate .......................................................................................................................................... 72 
+L_MsgLULD .............................................................................................................................................................. 72 
+L_MsgAccountChange ............................................................................................................................................. 72 
+L_MsgOrderRequested ........................................................................................................................................... 72 
+L_MsgOrderChange ................................................................................................................................................. 73 
+L_MsgPositionChange ............................................................................................................................................. 74 
+L_MsgShortLimitChange ......................................................................................................................................... 74 
+L_MsgSymbolChanged ............................................................................................................................................ 74 
+L_MsgLinkStatus ...................................................................................................................................................... 74 
+L_MsgSortUpdate .................................................................................................................................................... 75 
+Constants ............................................................................................................................................................. 76 
+DLL Exports .......................................................................................................................................................... 79 
+Macros ................................................................................................................................................................. 79 
+Functions 
+ 
+L_Application 
+ 
+void L_ExitLightspeedExtension(unsigned int exitCode) 
+ 
+ Call L_ExitLightspeedExtension to have Lightspeed Trader close the extension.  Lightspeed will call the 
+extension’s export, LSExitInstance, before unmapping the DLL.  LSExitInstance is also called by Lightspeed when 
+the trader stops the extension or closes Lightspeed.  LSExitInstance should perform extension termination tasks such 
+as freeing resources.  It is best kept as the only entry point for shutting down the extension, allowing the Lightspeed 
+Trader application to call it, while only calling L_ExitLightspeedExtension(exitcode) from within the extension. 
+ 
+Multithreading: 
+ Can be called from any thread. 
+ 
+HMODULE L_GetExtensionModule() 
+ 
+ Module handle of the DLL. 
+ 
+Multithreading: 
+ Can be called from any thread. 
+ 
+char const *L_GetLightspeedVersion() 
+The version of the Lightspeed Trader manual interface that has loaded the running extension.  This version is 
+distinct from the API version, which is documented in Macros, below. 
+Multithreading: 
+Can be called from any thread. 
+HWND L_GetMainWnd() 
+The handle of the main window of the Lightspeed Trader manual interface that has loaded the running 
+extension. 
+Multithreading: 
+Can be called from any thread. 
+L_Account *L_GetAccount() 
+Returns the L_Account object for the presently logged in trader. 
+Multithreading: 
+Can be called from any thread, though the L_Account object itself has many members that should only be 
+called from the main extension thread. 
+void L_LogAppMessage(char const *message) 
+Writes a string to the main Lightspeed Trader log file.  The log file is found in the Windows user’s 
+AppData\Local\Lightspeed directory, and is named by the trader’s login id followed by “.log”.  Log file lines start with the 
+date-time followed by “Ext” and the extension name, then the text in the message argument. 
+The Lightspeed log file is truncated to keep only two days of log file entries. 
+Multithreading: 
+Can be called from any thread. 
+void L_LogExtensionMessage(char const *message) 
+Writes a string to the extension-private log file.  The log file location can be configured through the config 
+dialog for the extension’s GrayBox window.  By default, the log file is found in the Windows user’s 
+AppData\Local\Lightspeed directory and is named by the extension name followed by the trader’s login id followed by 
+“.log”.  Log file lines start with the date-time followed by “Ext” and the text in the message argument.  Lightspeed 
+generated log file entries in the extension log may be prefixed by a string other than “Ext”, like “LSAPIAccount”. 
+The extension log file is truncated to keep only two days of log file entries. 
+Multithreading: 
+Can be called from any thread. 
+void L_AddMessageToAppWnd(char const *message) 
+Writes a string to the Messages window of the Lightspeed Trader manual interface.  The message will also be 
+sent to the main Lightspeed Trader log file. 
+Multithreading: 
+Can be called from any thread. 
+void L_AddMessageToExtensionWnd(char const *message, COLORREF color = RGB(255, 255, 255)) 
+Writes a string to the GrayBox messages window of the currently running extension.  The message will also be 
+sent to the extension’s log file.  The extension message window retains approximately 500 lines of extension messages as 
+well as 500 Lightspeed Trader generated messages, trimming them both independently.  You can specify the color of 
+messages in the extension message window. 
+Multithreading: 
+Can be called from any thread. 
+L_Summary *L_CreateSummary(char const *symbol) 
+Creates a market data updating summary of the stock specified by symbol.  To return resources and conserve 
+CPU utilization, L_Summary objects created with L_CreateSummary should be destroyed with L_DestroySummary 
+when they are no longer needed. 
+Each call to L_CreateSummary should be matched with a call to L_DestroySummary, though successive calls 
+to L_CreateSummary for the same symbol (and on the same strand, see Multithreading below) will return the same 
+L_Summary object with an internal reference count incremented. 
+Multithreading: 
+Should only be called from the main extension thread or from within a strand created with L_CreateStrand.  
+If created from a strand other than the main extension strand, the L_Summary object created will be updated on that 
+strand and therefore should have its members (L_Bid, etc) called from that strand only. 
+void L_DestroySummary(L_Summary *sum) 
+Destroy a summary object previously created with L_CreateSummary. 
+Each call to L_CreateSummary should be matched with a call to L_DestroySummary, though successive calls 
+to L_CreateSummary for the same symbol will return the same L_Summary object with an internal reference count 
+incremented. 
+Multithreading: 
+Can be called from any thread.  Whichever strand the summary was created on, this function will successfully 
+destroy it. 
+L_Summary *L_TryCreateSummary(char const *symbol) 
+Get an existing L_Summary object if there is already a summary object of that symbol created (on the 
+present strand—see Multithreading  in L_CreateSummary).  If successful the returned object should be released with 
+L_DestroySummary just as if it were created the L_CreateSummary.  If no such symbol already has a summary object 
+L_TryCreateSummary returns 0. 
+Multithreading: 
+See L_CreateSummary—this function should be handled the same way. 
+L_Summary *L_CreateClientSummary(L_Summary const *sourceSummary, L_Strand *clientStrand) 
+Multithreading: 
+Creates a remote strand copy of sourceSummary.  This copy will update by attaching to the sourceSummary.  
+Primarily provided for use with C_Sort objects, this allows two strands to have coherent sequencing of market data 
+messages.  The returned summary should be destroyed with L_DestroySummary when no longer needed. 
+The current strand, the sourceSummary’s strand and clientStrand can be different.  The returned L_Summary 
+should have its members (L_Bid, etc) called from clientStrand only. 
+Unlike L_CreateSummary, every call to L_CreateClientSummary returns a new object. 
+L_FullQuote *L_CreateFullQuote(char const *symbol) 
+Creates a market data updating copy ECN, Level2 and Trade data for the stock specified by symbol.  To return 
+resources and conserve CPU utilization, L_FullQuote objects created with L_CreateFullQuote should be destroyed 
+with L_DestroyFullQuote when they are no longer needed. 
+Each call to L_CreateFullQuote should be matched with a call to L_DestroyFullQuote, though 
+successive calls to L_CreateFullQuote for the same symbol will return the same L_FullQuote object with an 
+internal reference count incremented. 
+Multithreading: 
+Should only be called from the main extension thread or from within a strand created with L_CreateStrand.  
+If created from a strand other than the main extension strand, the L_FullQuote object created will be updated on that 
+strand and therefore should have its members (L_Bid, bids_begin etc) called from that strand only. 
+void L_DestroyFullQuote(L_FullQuote *fullquote) 
+Destroy a full quote object previously created with L_CreateFullQuote. 
+Each call to L_CreateFullQuote for a given symbol should be matched with a call to 
+L_DestroyFullQuote, though successive calls to L_CreateFullQuote for the same symbol will return the same 
+L_FullQuote object with an internal reference count incremented. 
+Multithreading: 
+Can be called from any thread.  Whichever strand the full quote was created on, this function will successfully 
+destroy it. 
+L_FullQuote *L_TryCreateFullQuote(char const *symbol); 
+Get an existing L_FullQuote object if there is already a full quote object of that symbol created.  If successful 
+the returned object should be released with L_DestroyFullQuote just as if it were created the 
+L_CreateFullQuote.  If no such symbol already has a full quote object L_TryCreateFullQuote returns 0. 
+Multithreading: 
+See L_CreateFullQuote—this function should be handled the same way. 
+L_GetFocusedSymbol and L_SetFocusedSymbol, allow the extension to get and change the 
+symbol of the focused level 2 window in the trader’s layout.  To receive notification of trader type-ups 
+and changes of focused window, attach to the app notifier with L_AttachAppNotifier.  Your observer 
+will then receive L_MsgSymbolChanged messages which provide the changed symbol through the 
+L_Symbol method. 
+char const *L_GetFocusedSymbol() 
+Multithreading: 
+Not thread-safe—should only be called from the main extension thread/strand.  L_AttachToAppNotifier 
+can be used to follow the focused symbol from custom strands. 
+void L_SetFocusedSymbol(char const *symbol) 
+Multithreading: 
+Can be called from any thread.  
+void L_AttachToAppNotifier(L_Observer *dest) 
+Multithreading: 
+Can be called from any thread.  
+void L_DetachFromAppNotifier(L_Observer *dest) 
+To receive notification of  
+1) Quote server, market server and executor connection and disconnection events via L_MsgLinkStatus 
+messages.  To query the current connection status use L_IsExecutorConnected(), 
+L_IsQuoteConnected() and L_IsMarketConnected(). 
+2) Changes by the trader to the focused level 2 window’s currently typed-up symbol via the 
+L_MsgSymbolChanged message.  To query and change the current symbol use L_GetFocusedSymbol() and 
+L_SetFocusedSymbol(). 
+Multithreading: 
+Can be called from any thread.  
+bool L_IsExecutorConnected() 
+bool L_IsQuoteConnected() 
+bool L_IsMarketConnected() 
+To query for the current connection status of the executor, quote and market servers. 
+Multithreading: 
+None of the three of these is thread-safe—they should only be called from the main extension thread/strand.  
+L_AttachToAppNotifier can be used to follow the connection status of the servers from custom strands. 
+void L_SubscribeToMarketStatus(L_Observer *dest) 
+Multithreading: 
+Can be called from any thread.  
+void L_UnsubscribeFromMarketStatus(L_Observer *dest) 
+To receive notification of: 
+L_MsgMarketStatus 
+L_MsgStockHalted 
+L_MsgStockResumed 
+L_MsgDirectQuotesLost 
+To query for the current market status use L_MarketStatus(). 
+Multithreading: 
+Can be called from any thread.  
+char L_MarketStatus() 
+To query for the current market status use L_MarketStatus(). 
+Return values, corresponding to the return values of the L_MsgMarketStatus::L_Status() method: 
+L_Market::MorningBefore 
+L_Market::Premarket 
+L_Market::Preopening 
+L_Market::RegSessionOpen 
+L_Market::ExtSessionOpen 
+L_Market::Closed 
+L_Market::Halted 
+Multithreading: 
+Not thread-safe—should only be called from the main extension thread/strand.  
+L_SubscribeToMarketStatus can be used to follow the market status from custom strands. 
+void L_SubscribeToOrderImbalances(L_Observer *dest) 
+void L_UnsubscribeFromOrderImbalances(L_Observer *dest) 
+Use L_SubscribeToOrderImbalances to be notified of all order imbalances.  Upon subscribing, an 
+L_MsgOrderImbalance message will be received for each existing imbalance with updates as they occur until 
+L_UnsubscribeFromOrderImbalances is called.  Whereas L_Summary objects only notify their observers of 
+imbalances for their selected stocks, this subscription sends notification of all stocks with imbalances. 
+Multithreading: 
+Can be called from any thread.  
+The following Subscribe/Unsubscribe functions allow the extension to receive specific market data 
+messages by symbol or symbol and ECN name.  The same observer can attach to multiple symbols and 
+multiple ECNs per symbol, distinguishing the subscription upon notification with the L_Symbol() and 
+L_MMID() methods of the message. 
+void L_SubscribeToLevel1(char const *symbol, L_Observer *dest); 
+void L_UnsubscribeFromLevel1(char const *symbol, L_Observer *dest); 
+To be notified of: 
+L_MsgL1  
+L_MsgL1Update  
+L_MsgL1Change  
+Multithreading: - the initial snapshot of inside, last and fundamental fields - updates to inside and last price - occasional updates to certain fundamental fields 
+Can be called from any thread.  
+void L_SubscribeToTrades(char const *symbol, L_Observer *dest); 
+void L_UnsubscribeFromTrades(char const *symbol, L_Observer *dest); 
+To be notified of: 
+L_MsgTrade   
+L_MsgTradeUpdate  
+L_MsgTradeCorrection  
+L_MsgTradeClosingReport 
+Multithreading: 
+Can be called from any thread.  - the initial snapshot of last 50 trades - updates of most recent trade - correction of high/low/last/volume - finalized high/low/last/volume for the day 
+void L_SubscribeToLevel2(char const *symbol, L_Observer *dest); 
+void L_UnsubscribeFromLevel2(char const *symbol, L_Observer *dest); 
+To be notified of: 
+L_MsgL2  
+L_MsgL2Refresh 
+L_MsgL2Update  
+Multithreading: - the initial snapshot of all venues - correction/refresh of initial snapshot - updates of individual venue quotes 
+Can be called from any thread.  
+void L_SubscribeToECN(char const *ecn, char const *symbol, L_Observer *dest); 
+void L_UnsubscribeFromECN(char const *ecn, char const *symbol, L_Observer *dest); 
+To be notified of: 
+L_MsgECN  
+L_MsgECNUpdate 
+Multithreading: - the initial snapshot of all price levels - updates of individual quotes 
+Can be called from any thread.  
+void L_SubscribeToECNList(L_Observer *dest); 
+void L_UnsubscribeFromECNList(L_Observer *dest); 
+To be notified of: 
+L_MsgECNList  
+Multithreading: - a list of ECNs available for subscription 
+Can be called from any thread.  
+void L_SubscribeToIndications(L_Observer *dest) 
+void L_UnsubscribeFromIndications(L_Observer *dest) 
+To be notified of: 
+L_MsgIndicationUpdate 
+Multithreading: 
+Can be called from any thread.  - a Pre-opening indication update. 
+The following six functions return counts of subscriptions to given symbols.  These are the 
+reference counts of summary, full quote and direct subscriptions for the currently loaded extension. 
+long L_SummaryCount(char const *symbol) 
+long L_L1SubscriptionCount(char const *symbol) 
+long L_FullQuoteCount(char const *symbol) 
+long L_TradesSubscriptionCount(char const *symbol) 
+long L_L2SubscriptionCount(char const *symbol) 
+long L_ECNSubscriptionCount(char const *ecn, char const *symbol) 
+Multithreading: 
+All six of the above can be called from any thread. 
+bool L_IsLan() 
+If Lightspeed is connected over SSL or VPN this function returns false, at which time the limit on number of 
+subscriptions is smaller than if L_IsLan() returns true. 
+L_Side 
+bool L_Side::IsBuy(char s) 
+Returns true if s == L_Side::BUY. 
+bool L_Side::IsSell(char s) 
+Returns true if s is either L_Side::SELL or L_Side::SHORT. 
+This is useful on examining orders already sent.  Since Lightspeed performs short sale management, only 
+L_Side::BUY and L_Side::SELL are required when sending an order. 
+bool L_Side::IsShort(char s) 
+Returns true if s == L_Side::SHORT. 
+This is useful on examining orders already sent.  Since Lightspeed performs short sale management, only 
+L_Side::BUY and L_Side::SELL are required when sending an order. 
+Multithreading: 
+All three of the above can be called from any thread. 
+L_Symbols 
+bool L_IsListed(char const *symbol) 
+bool L_IsEquity(char const *symbol) 
+bool L_IsFuture(char const *symbol) 
+bool L_IsIndex(char const *symbol) 
+Multithreading: 
+All four of the above can be called from any thread. 
+L_TimeUtil 
+void L_GetUSEasternTime(unsigned int &h, unsigned int &m, unsigned int &s) 
+Returns hours, minutes and seconds of the local machine’s current time translated to the US Eastern time zone. 
+Multithreading: 
+Can be called from any thread.  
+void L_GetUSEasternTm(tm &t) 
+Returns the local machine’s current time translated to the US Eastern time zone.  The struct tm type is 
+documented in the Visual C Language Reference under the asctime function, and is used by the formatting function 
+strftime. 
+Multithreading: 
+Can be called from any thread.  
+time_t L_GetUSEasternMidnight() 
+Returns the time of the most recent midnight in the US Eastern time zone. 
+Multithreading: 
+Can be called from any thread.  
+long L_GetMillisSinceMidnight() 
+Returns the time in milliseconds since US Eastern midnight. 
+Multithreading: 
+Can be called from any thread.  
+void L_MillisToTm(long millis, tm &t) 
+Converts milliseconds since US Eastern midnight to struct tm (see L_GetUSEasternTm above). 
+Multithreading: 
+Can be called from any thread.  
+long long L_GetHNTime() 
+Returns current system time in hundreds of nanoseconds since Jan 1, 1601 UTC, similarly to the Windows calls 
+using the FILETIME structure. 
+Multithreading: 
+Can be called from any thread.  
+long long L_GetHNUSEasternMidnight() 
+Returns the time of the most recent midnight in the US Eastern time zone.  It is returned in hundreds of 
+nanoseconds since Jan 1, 1601 UTC, similarly to the Windows calls using the FILETIME structure. 
+Multithreading: 
+Can be called from any thread.  
+L_DoubleUtil 
+Overview, double Type 
+L_DoubleUtil encapsulates a common way of handling strong precision requirements when using the 
+standard C/C++ double type, as Lightspeed Trader does. 
+The double type is convenient and fast for most purposes but the fact that the double type is internally 
+represented in base two rather than base ten can require careful coding in certain circumstances.  The 
+caution is required when comparing two numbers that may be equal on paper but that produce two 
+different double representations, each different from the other by an extremely small amount.  A typical 
+example might involve comparing a threshold, t = 0.3, with a spread, s->L_Ask() – s->L_Bid(), but 
+we can see the problem even with two different but equivalent calculations of the same number, such 
+as 3.0 / 10.0 and 0.2 + 0.1.  The difference between these two calculations is small but an if-clause may 
+still evaluate incorrectly.  For example, 0.2 + 0.1 > 3.0 / 10.0 will evaluate to true in the standard C++ 
+environment.  In the double type 
+3.0 / 10.0 is approximately 0.29999999999999999  
+and 
+0.2 + 0.1 is approximately 0.30000000000000004. 
+For numbers under a billion and of fewer than 7 places after the decimal, these differences will all be 
+less than 0.0000001.  The Lightspeed Trader API provides a constant, const double ls_epsilon = 
+0.00000001, and supporting routines to quickly compare double type numbers. 
+For example, ls_gt(0.2 + 0.1, 3.0 / 10.0) evaluates to false while ls_eq(0.2 + 0.1, 3.0 / 
+10.0) evaluates to true. 
+Note, when the extension sends one of these many digit approximations to the API via a call to 
+L_SendOrder or other method, Lightspeed Trader will correctly round and format the number before 
+passing it on as an order so that an order priced at $10.29999999999999999 will get sent at the price 
+$10.30.  This will happen frequently, mostly unnoticed, simply because there is no exact representation 
+for many decimal numbers (such as 0.3). 
+If for some reason the extension requires a unique representation of double typed numbers, the 
+ls_round function normalizes its argument while rounding it so that ls_round(0.2 + 0.1, 4) == 
+ls_round(3.0 / 10.0, 4) evaluates to true without use of epsilon.  Lightspeed Trader market data is 
+initially normalized with the equivalent of ls_round(n, 7). 
+Function Reference 
+bool ls_neq(double lhs, double rhs) 
+bool ls_eq(double lhs, double rhs) 
+bool ls_gt(double lhs, double rhs) 
+bool ls_geq(double lhs, double rhs) 
+bool ls_lt(double lhs, double rhs) 
+bool ls_leq(double lhs, double rhs) 
+double ls_round(double p, int prec) 
+Multithreading: 
+All seven of the above can be called from any thread.  
+L_Observer 
+Overview, Observer and Observables 
+The Lightspeed API delivers much of its functionality through messages.  Market data updates and 
+changes to the account as well as server reconnection and symbol change events are all deliverd to the 
+extension from subscriptions and observables.  For the extension to receive these messages, objects of 
+L_Observer-extending classes subscribe or attach to observables.  Some observables that the API 
+provides are L_Account, L_Summary and L_FullQuote.  These classes all derive from L_Observable. 
+It is possible also for extension-created classes to extend L_Observable to allow its observers to attach 
+and receive custom notifications, those notifications triggered with L_Observable::C_Notify.  Further, 
+messages can be sent point-to-point by calling any observer’s C_QueueMessage.  Both point-to-point and 
+group notification can be delayed or scheduled for specific times with the C_ScheduleMessage, 
+C_QueueMessageDelayed, C_ScheduleNotification and C_NotifyDelayed methods. 
+To create messages that can be delivered with Lightspeed’s internal observer logic, and to facilitate the 
+maintenance of clean startup and shutdown of the extension, these custom messages must extend 
+C_Message, use an id >= L_MessageRanges::id_start and must be allocated with the C_Alloc API 
+function.  The resulting message will extend L_Message, will have a custom L_Type value and should be 
+static-casted to the derived class in the same way Lightspeed built-in message classes are. 
+It can be useful to integrate with the Lightspeed provided observer and observable classes to 
+take advantage of timers through its scheduled/delayed delivery, as well as to acquire clarity on the 
+sequence of extension-generated messages in relation to Lightspeed-generated messages. 
+See the documentation in this section and in the section Observer Classes as well as the samples 
+for details.  Here we will just demonstrate the basic notation in a very short sample.  The primary value 
+of observables is their C_Notify method, but to produce an example with changing output here we’ll 
+demonstrate the C_NotifyDelayed method. 
+#include <sstream> 
+#include "LightspeedTrader/LightspeedTrader.h" 
+using namespace LightspeedTrader; 
+First, the custom message class: 
+class MsgRegularEvent : public C_Message<L_MessageRanges::id_start> 
+{ 
+public: 
+}; 
+MsgRegularEvent(long iterationInit) 
+: iteration(iterationInit) 
+{ 
+} 
+long iteration; 
+Then an observable class: 
+class EventGenerator : public L_Observable 
+{ 
+public: 
+private: 
+}; 
+EventGenerator() : iteration(0) {} 
+void GenerateEvent() 
+{ 
+C_NotifyDelayed(C_Alloc<MsgRegularEvent>(iteration), 1000); 
+++iteration; 
+} 
+long iteration; 
+ 
+ Then the extension application object to start things off and serve as an observer to the 
+EventGenerator class: 
+ 
+class EventApp : public L_Observer 
+{ 
+public: 
+ void StartExtension() 
+ { 
+  eventGenerator.L_Attach(this); 
+  eventGenerator.GenerateEvent(); 
+ } 
+ void StopExtension() 
+ { 
+  eventGenerator.L_Detach(this); 
+ } 
+ void HandleMessage(L_Message const *m) 
+ { 
+  if (m->L_Type() == MsgRegularEvent::id) 
+  { 
+   auto pMsg(static_cast<MsgRegularEvent const *>(m)); 
+   std::stringstream str; 
+   str << "Event Generated, " << pMsg->iteration; 
+   L_AddMessageToExtensionWnd(str.str().c_str()); 
+ 
+   eventGenerator.GenerateEvent(); 
+  } 
+ } 
+private: 
+ EventGenerator eventGenerator; 
+}; 
+ 
+EventApp app; 
+ 
+LSEXPORT void LSInitInstance() { app.StartExtension(); } 
+LSEXPORT void LSExitInstance() { app.StopExtension(); } 
+ 
+ 
+ 
+ 
+Multithreading Note 
+Lightspeed observers and observables are essentially single-threaded in that the sequence of 
+HandleMessage calls is expected to provide sequence-sensitive event processing.  Different observers, 
+though, can be involved in different sequences of events, and so need not be on the same thread of 
+execution.  To support parallelism with observers Lightspeed provides the L_Strand type, see the 
+overview of threading at the head of L_Thread.  One can create strands to run on remote threads and 
+provide those strands to the L_Observer and L_Observable constructors.  The observer will then execute 
+its HandleMessage calls on the provided strand and the observable will then call C_Notify synchronously 
+from that strand and asynchronously from remote strands. 
+There are three implicit requirements in using observers from multiple strands. 
+• The first is that the constructor, if being called from a thread or strand other than the observer’s 
+home strand, should not subscribe or attach to any objects, as the HandleMessage method 
+might then execute before construction is complete. 
+• The second is, similarly, that the destructor must be called from the home strand, or else 
+HandleMessage may be in progress as the destructor is in progress.  C_QueueDelete and 
+C_QueueCustDeleter are provided to enable easy scheduling of object deletion.  Observables 
+do not have this same requirement because they do not have a HandleMessage call, though 
+they will internally defer various work to the correct strand. 
+• The third requirement is that message objects be considered immutable once they have been 
+queued or notified.  This is the case for all Lightspeed-generated messages.  This allows 
+messages to be freely read from any thread. 
+There are a variety of samples demonstrating these techniques in the Threading subdirectory of the 
+samples directory provided with the API.  Some of these samples are copies of samples from the root 
+directory, slightly modified to use multiple threads to aid isolating the important distinctions by 
+comparison.  Also, see the discussion of threading at the start of L_Thread. 
+Function Reference 
+template<typename T> 
+void C_QueueDelete(T *ob) 
+Free function that causes the observer ob to be deleted with the standard delete operator.   If the home 
+strand of the observer is different than the current strand it queues this deletion for execution on the home strand.  It is 
+useful for smart pointers that may be shared among more than one strand/thread, eg: 
+std::shared_ptr<MyObserver> myOb(new MyObserver(), C_QueueDelete<MyObserver>); 
+though it is a free function and can be called directly, C_QueueDelete(myRawPtrOb).  To similarly queue a custom 
+function object see C_QueueDeleter<T, D> below. 
+Requires T extend L_Observer. 
+Multithreading: 
+Can be called from any thread. 
+template<typename T, typename D> 
+C_QueueDeleter<T, D> C_QueueCustDeleter(D deleter) { return C_QueueDeleter<T, 
+D>(deleter); } 
+Returns an operator, similar to C_QueueDelete, suitable for smart pointers accepting deleter arguments.  
+The returned functor, on application, calls deleter on the observer argment.   If the home strand of the observer is 
+different than the current strand it queues this call to the home strand.  Eg: 
+std::shared_ptr<MyObserver> myOb( 
+MyCustomFactory::Create(), 
+C_QueueCustDeleter<MyObserver>([](MyObserver *ob) { MyCustomFactory::Destroy(ob); }) 
+); 
+Requires T extend L_Observer. 
+Multithreading: 
+Can be called from any thread. 
+L_Thread 
+Overview, Multithreading 
+The Lightspeed Trader API provides many of its features through an event-driven model utilizing 
+observers and observables.  Observers and observables deliver and process messages sequentially, 
+always handling messages in the same order they were sent.  While any one will only operate in a single
+threaded way, different observers, if constructed to do so, can operate in parallel.  Utilizing observers 
+and observables to distribute CPU load can allow the extension to accomplish many multi-threaded 
+tasks entirely with “single-threaded” code, by using messages to share information between parallel 
+tasks. 
+Lightspeed supports an object, the L_Strand, that represents the single thread of execution observers 
+and observables use.  At extension start there is one strand running on exactly one thread, and much of 
+the API should only ever be accessed from that thread.  When L_Observer and L_Observable derived 
+classes default construct those base classes they choose the presently active strand for their work.  
+However, work not requiring account-related API calls can be queued or scheduled for parallel execution 
+by passing L_Strand * objects to L_Observer and L_Observable constructors on the objects created 
+to do the work. 
+To enable extension-created threads to participate in this model and be capable of receiving observer 
+messages, the API exposes some implementable interfaces and provides some pre-built reference 
+implementations. 
+Any threads with an event processing loop can be extended to interoperate with Lightspeed events by 
+exposing an L_Port interface.  The L_Port interface simply promises to asynchronously call a DoWork 
+method on an L_Work object.  L_Strand objects utilize these ports to implement the single-sequence-of
+execution necessary to process observer traffic. 
+If the use of observers can accommodate all event processing the extension wishes to do, reference 
+implementations of these interfaces can be used.  For example, to simply create one additional thread 
+the C_CreateSingleStrandThread() function can be called to create a new thread and return an L_Strand 
+* result.  This strand pointer can be passed to L_Observer and L_Observable constructors ensuring their 
+work will be done on that new thread. 
+The L_Strand represents a single thread of execution rather than the L_Thread because some multi
+threaded programming models require many more independent sequential tasks than can be 
+realistically created with threads—threads bringing overhead from features that are essentially overkill.  
+A small number of threads—enough to keep all cores busy—can run any number of strands.  This usage 
+pattern can be accomplished with the C_LibPort reference implementation, for example, by port = 
+C_LibPort::Create(numCores), port->StartCRTThreads(2 * numCores) and a series of 
+C_CreateStrand(port) calls. 
+Function Reference 
+L_Thread *L_GetCurrentThread() 
+Returns an interface on the Lightspeed Trader record for the current thread. 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *L_GetExtensionStrand() 
+The thread the extension is created on—the thread LSInitInstance and LSExitInstance are called 
+from—has the return result from this function as a default strand. 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *L_GetCurrentStrand() 
+Returns the currently active strand.  L_GetCurrentStrand will always return a non-null result in methods 
+running on the main extension thread, however it can return nullptr on strands created with custom ports.  For 
+example, when called from the main thread procedure of any custom-created threads L_GetCurrentStrand will 
+return nullptr because strands become active in the L_Work callbacks that that procedure will be responsible for.  In 
+L_Observer::HandleMessage there is always an active strand. 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *C_CreateSingleThreadStrand() 
+A convenience function to create a thread that can run observers.  Implemented with C Runtime threads and 
+C_LibPort. 
+Creates a single thread, associates a strand with it and returns that strand.  Observers can be created with this 
+strand as argument to the L_Observer constructor.  Then HandleMessage calls on that observer will occur on the 
+thread created by this call to C_CreatSingleThreadStrand(). 
+Use C_DestroyStrand to release the resource when finished with it. 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *L_CreateStrand(L_Port *port) 
+template<typename portPtr> 
+L_Strand *C_CreateStrand(portPtr port) 
+Creates a strand for use as argument to L_Observer and L_Observable constructors.  The created strand 
+maintains a reference to the provided port through port->l_Buffer->L_IncRef() (essentially a C_Ptr<L_Port> 
+reference). 
+Multithreading: 
+Can be called from any thread. 
+void L_DestroyStrand(L_Strand *strand) 
+template<typename strandPtr> 
+void C_DestroyStrand(strandPtr strand) 
+Destroys a strand previously created by L_CreateStrand.  Strand local storage will be deleted but observer 
+C_QueueDelete and C_QueueCustDeleter calls not yet complete at the time of strand destruction will still execute.  
+Once observers and observables with the destroyed strand as home strand are destroyed, the port reference 
+maintained, as referenced in L_CreateStrand, is released. 
+Multithreading: 
+Can be called from any thread—if not called from the strand being destroyed, the strand local storage 
+destruction will be delayed to execute in the context of that strand. 
+The strand storage calls and their appropriate use is encapsulated in the reference class 
+C_StrandLocalPtr, documented below. 
+L_StrandStorageId *L_AllocStrandStorageId() 
+void L_FreeStrandStorageId(L_StrandStorageId *id) 
+void *L_GetStrandStorage(L_StrandStorageId *id) 
+void L_SetStrandStorage(L_StrandStorageId *id, void *val, void (*deleter)(void *)) 
+L_Sorter 
+Overview, L_Sort 
+This section presumes some familiarity with the LightspeedTrader API L_Strand object and handling 
+observer messages from multiple threads.  Below this introduction the free functions are documented 
+and in section Sorter Classes the classes are documented. 
+The sorter provides a means of keeping a list of elements sorted as they dynamically change.  A sort 
+object on a remote strand collects notifications of updates to the elements and moves the elements to 
+their appropriate position, in turn notifying sort observers of changes in rank of the elements.  It is 
+intended to allow a very large list of elements to be kept sorted on one strand, while a short subrange 
+(even just one, the top) is kept sorted on a client thread.  The “sort” runs on a remote strand and 
+ 
+notifies messages, which can be observed from client strands, of changes in membership of this 
+subrange of the total sort. 
+  
+To use the sorter, create a class derived from L_Observer, equipped with an operator<, to serve as the 
+element type of the sort.  You will create a sort, of type C_Sort<yourelementclass>, with 
+C_CreateSort.  Attach an observer to the created sort, then call that sort’s C_AddElement method for 
+each element you want to add to the sort. 
+ 
+The constructor, destructor and operator< methods will be called from the sort’s home strand, which 
+will not be the same strand as the main extension strand (unless that is explicitly provided in the 
+C_CreateSort call—though C_Sort’s primary utility is in taking advantage of multiple threads).  To 
+communicate sort changes, the C_Sort<yourelementclass>::MsgUpdate message is notified from the 
+C_Sort to its observers.  This list of changes given in this message are not sorted according to the 
+element sort operator—this message just notifies which elements remain in the requested update 
+range. 
+ 
+For example, to sort a list of stocks based on highest last trade volume we can create a sort element 
+class that subscribes to trades and stores the last volume received, updating the sort order on trade 
+update messages. 
+ 
+#include "LightspeedTrader/LightspeedTrader.h" 
+using namespace LightspeedTrader; 
+ 
+class SortElement : public L_Observer 
+{ 
+public: 
+ typedef char const *param_type; 
+ SortElement(C_Sort<SortElement> *sortInit, param_type param) 
+  : symbol(param) 
+  , lastsize(0) 
+  , sort(sortInit) 
+ { 
+  L_SubscribeToTrades(symbol, this); 
+ } 
+ ~SortElement() 
+ { 
+  L_UnsubscribeFromTrades(symbol, this); 
+ } 
+ // L_Observer 
+ virtual void HandleMessage(L_Message const *msg) 
+ { 
+  if (msg->L_Type() == L_MsgTradeUpdate::id) 
+  { 
+   auto m(static_cast<L_MsgTradeUpdate const *>(msg)); 
+   lastsize = m->L_Volume(); 
+   sort->C_UpdateElement(this); 
+  } 
+ } 
+ 
+ char const *symbol; 
+ long long lastsize; 
+ C_Sort<SortElement> *sort; 
+}; 
+ 
+ 
+The C_CreateSort functions require the element type to have a typedef param_type and a constructor 
+taking two arguments, a sort pointer and a parameter of param_type.  In this example we add elements 
+with a param type of char const * so we can pass symbol names to C_AddElement (which we will do 
+in LargetLastSize::StartExtension below). 
+ 
+The L_Observer base class of the element class should be default, zero-argument constructed, to pick 
+up the sorter’s home strand. 
+ 
+Then we provide a sort order for the element. 
+ 
+bool operator<(SortElement const &lhs, SortElement const &rhs) 
+{ 
+ return lhs.lastsize > rhs.lastsize; 
+} 
+ 
+To wrap this up in a full extension that creates the sort and adds the elements we can create an 
+application object that extends L_Observer: 
+ 
+class LargestLastSize : public L_Observer 
+{ 
+public: 
+ LargestLastSize() : sort(nullptr) { } 
+ void StartExtension() 
+ { 
+  sort = C_CreateSort<SortElement>(1, 0); 
+  sort->L_Attach(this); 
+  // Add elements to the sort with C_AddElement--we'll just add two... 
+  sort->C_AddElement("QQQ"); 
+  sort->C_AddElement("DIA"); 
+ } 
+ void StopExtension() 
+ { 
+  sort->L_Detach(this); 
+  C_DestroySort(sort); 
+ } 
+ virtual void HandleMessage(L_Message const *msg) 
+ { 
+  if (msg->L_Type() == C_Sort<SortElement>::C_MsgUpdate::id) 
+  { 
+   auto m = static_cast<C_Sort<SortElement>::C_MsgUpdate const *>(msg); 
+ 
+   if (m->adds_begin() != m->adds_end()) 
+   { 
+    L_AddMessageToExtensionWnd((*m->adds_begin())->symbol); 
+   } 
+  } 
+ } 
+ C_Sort<SortElement> *sort; 
+}; 
+ 
+LargestLastSize app; 
+ 
+LSEXPORT void LSInitInstance() { app.StartExtension(); } 
+LSEXPORT void LSExitInstance() { app.StopExtension(); } 
+ 
+ 
+ 
+The HandleMessage method in the LargestLastSize class will be called from the main extension 
+thread so we only access static data from our element class there (we add a message to the extension 
+window with that element’s symbol member).  To conveniently communicate the contents of the 
+elements back to the main extension strand a further client observer constructed to use the main 
+extension strand can be added to the element class, as is done in the various samples such as 
+NonMarketSort. 
+Another feature of the sorter is the availability, for installations configured with a market scanner 
+server, of the C_AddMarketSummaryElements method to C_Sort.  This method requires the parameter 
+type of your element class to be L_Summary const * and will automatically call C_AddElement with a 
+summary running on the sort strand, once for each of the approximately eight thousand stocks in the 
+market.  If the manual interface is already displaying a LightScan window, it can be beneficial to keep the 
+default strand in C_CreateSort.  The default strand is the same strand the LightScan sorter runs on, 
+creating a savings internally on subscriptions and message traffic.  If this function is enabled, 
+L_HasMarketSubscription() will return true. 
+Another feature is the ability to dynamically include and exclude your elements from the sort.  The 
+C_CreateSort method will accept a boolean function operator for determining an element’s visibility. 
+The comparison operator and filter can also be provided by means of a “sort operator”.  The version of 
+C_CreateSort that accepts a sort operator is the one used behind the scenes by the C_CreateSort 
+overloads that expect an operator<.  Providing an explicit sort operator can be useful for maintaining 
+more sophisticated state for your sort.  Providing a sort operator involves creating a class that extends 
+C_SortOperator<yourelementclass> and allocating it with C_Alloc.  See the documentation under 
+Sorter Classes and the SortingAndThreading sample for further details. 
+Function Reference 
+template<typename sortElement, typename sortOpPtr> 
+C_Sort<sortElement> *C_CreateSort(sortOpPtr pSortOp, long elementCount, long 
+startingRank, L_Strand *strand = nullptr) 
+Create a sort with the specified sort operator and tracking range.  The pSortOp object will provide the sort 
+comparison operator and filter.  The observable C_Sort<sortElement>  will notify adds and deletes for the range of 
+the list starting at rank startingRank (0 being the top of the list) and goes elementCount down into the list.  The sort 
+operator must extend C_SortOperator<sortElement> and sortElement must extend L_Observer.  The sort 
+operator should be allocated with C_Alloc. 
+If strand is nullptr, the sort will be created on the default sorter strand (the same strand as the LightScan 
+window in the Lightspeed Trader manual interface). 
+Destroy with C_DestroySort when no longer needed. 
+Multithreading: 
+Can be called from any thread. 
+template<typename sortElement, typename toKeepFuncType, typename compareFuncType> 
+C_Sort<sortElement> *C_CreateSort(long elementCount, long startingRank, compareFuncType 
+compare, toKeepFuncType toKeep, L_Strand *strand = nullptr) 
+Create a sort with a default sort operator class that uses the provided functions, compare and toKeep, for 
+sorting and filtering.  See C_CreateSort above. 
+Multithreading: 
+Can be called from any thread. 
+template<typename sortElement> 
+C_Sort<sortElement> *C_CreateSort(long elementCount, long startingRank, L_Strand *strand 
+= 0) 
+Create a sort with a default sort operator class that does not filter at all (has a ToKeep method that always 
+returns true) and uses any less than comparison operator defined for the sortElement type: 
+bool operator<(sortElement const &lhs, sortElement const &rhs) 
+See C_CreateSort above. 
+Multithreading: 
+Can be called from any thread. 
+L_Sort *L_CreateSort(L_SortOperator *sortOp, long elementCount, long startingRank, 
+L_Strand *strand, size_t indexSize, size_t indexAlign, size_t ioffset, void 
+(*indexConstruct)(void *, L_Sort *sort, size_t), void (*indexDestruct)(void *)) 
+L_CreateSort is the binary API call for creating a sort.  The C_CreateSort functions wrap the protocol for 
+correctly using this function. 
+template<typename sortPtr> 
+void C_DestroySort(sortPtr sort) 
+void L_DestroySort(L_Sort *sort) 
+Destroy the sort created by C_CreateSort. 
+Multithreading: 
+Can be called from any thread. 
+void L_AddMarketSummaryElements(L_Sort *sort, L_SymbolFilterStatic const *filt) 
+See C_Sort::C_AddMarketSummaryElements in the C_Sort class documentation. 
+Multithreading: 
+Can be called from any thread. 
+bool L_HasMarketSubscription() 
+Returns true if Lightspeed Trader is configured with a market scanner server, at which time 
+L_AddMarketSummaryElements (and C_Sort::C_AddMarketSummaryElements) can successfully create 
+summaries for the entire market—without that configuration these functions have no effect. 
+L_Memory 
+template<typename T, (constructor argument types ...)> 
+C_Ptr<T> C_Alloc(constructor arguments...) 
+C_Alloc allocates reference counted memory blocks.  As long as such an object is still in use, the extension 
+DLL will not be unloaded which makes it useful for objects with call-backs the front end will use, ensuring a clean 
+shutdown of the extension.  Message objects delivered with C_QueueMessage, C_Notify etc, must be allocated this 
+way, though the call can be useful for other objects. 
+C_Alloc allocates objects of type T 
+The type T must meet the following constraints: 
+a. 
+Must have a public integer id member, T::id, either a static long const or an enum member.  That id 
+should be greater than or equal to L_MessageRanges::id_start. 
+b. Must have a public type member, T::alloc_interface_type, specifying a base class of the type 
+T. 
+c. 
+Must have a public L_Buffer *l_Buffer member. 
+Classes extending C_Message<messageId> will satisfy these constraints, the id being messageId and 
+alloc_interface_type being L_Message const. 
+C_Alloc will respect alignment directives in the class specified by T. 
+Multithreading: 
+Can be called from any thread. 
+L_Buffer *L_Alloc(size_t size) 
+Provides the binary interface to buffer allocation—C_Alloc wraps the protocol for correctly using L_Alloc. 
+Account Classes 
+Overview, Order Processing 
+As an introduction to the core Lightspeed Trader API account functionality we’ll describe here the basics 
+of order creation and the possible flow of events that can follow it.  To follow the progress of an order 
+the extension should attach an observer to the L_Account object.  One may also want to attach to the 
+summary object that can be used when sending an order—see the discussion at the head of Market 
+Data Classes. 
+Every L_SendOrder or L_SendOrderBasic call is accompanied by an L_MsgOrderRequested response.  
+The L_Result return value will indicate the success of Lightspeed at creating the order, the 
+L_CorrelationId will indicate which call triggered this message response while the 
+L_Order1ReferenceId and L_Order2ReferenceId allow one to find and identify the order in further 
+messages and L_FindOrder calls.  If the result is L_OrderError::ORDER_SENT_OK, then a series of 
+L_MsgOrderChange messages can be expected to follow. 
+L_MsgOrderChange messages are generated when any order (whether generated by an extension or the 
+manual interface) is: 
+• Created,    
+L_Category() = L_OrderChange::Create 
+o Indicates an order object has been created internally to Lightspeed Trader. 
+• Received by the executor,  
+L_Category() = L_OrderChange::Receive 
+o Indicates the executor has received the order and assigned it an order id—which is 
+distinct from the reference id. 
+• Rejected,   
+L_Category() = L_OrderChange::Rejection 
+o This can be received after L_OrderChange::Create or L_OrderChange::Receive. 
+• Some shares have filled,  
+L_Category() = L_OrderChange::Exec 
+o The number of active shares has decreased.  Active shares will remain non-zero until the 
+last L_OrderChange::Exec, L_OrderChange::Cancel or L_OrderChange::Rejection. 
+• Cancel created,   
+L_Category() = L_OrderChange::CancelCreate 
+o Indicates an extension or the manual interface has requested to cancel the order. 
+• Cancelled at venue,  
+L_Category() = L_OrderChange::Cancel 
+o Indicates a successful cancel. 
+• Cancel rejected,  
+L_Category() = L_OrderChange::CancelRejection 
+o Indicates the cancel was rejected—ordinarly because the order has already been filled. 
+• Manual backend deletion, 
+L_Category() = L_OrderChange::Kill 
+o If manual intervention, independent of the venue and executor, becomes necessary the 
+back office can delete an order by hand. 
+The OrderFlow class from the GenSymbol sample provides an example of such processing. 
+Overview, Short Sale Management 
+Sell orders to venues are marked as to whether they will open or close positions.  Lightspeed provides 
+the functionality, short sale management, which will track order and position size and mark the orders 
+correctly. 
+An opening sell order, identified in the manual interface as having side “SSL”, is a short sale order.  A 
+closing sell order, identified by “SEL”, is a long sale order.  This different marking requires that no one 
+order can be both opening and closing.  An order request that would close a position in entirety and still 
+have remaining shares to post must be broken into two orders, a long sale and a short sale.  This is why 
+the L_MsgOrderRequested response can deliver two different reference ids—L_Order1ReferenceId 
+and L_Order2ReferenceId. 
+Buy orders do not require special marking, so L_SendOrder calls with side = L_Side::BUY will only 
+generate L_MsgOrderRequested messages with non-zero L_Order1ReferenceId.  L_SendOrder calls 
+with side = L_Side::SELL may generate two reference ids: L_Order1ReferenceId for the long sale 
+and L_Order2ReferenceId for the short sale. 
+As orders are cancelled and filled Lightspeed will recalculate to verify no remaining SEL orders will 
+exceed position size.  When Lightspeed sends replacement orders, it generates a new 
+L_MsgOrderRequested message with the L_SSMReplacedReferenceId returning the reference id of the 
+order modified. 
+Multithreading Note 
+Most account-related objects provided by the LightspeedTrader API, other than the L_Message objects, 
+are not safe to access from any thread other than the main extension thread.  In order to ensure fast 
+and correct results from the inherently sequence-sensitive account processing of the API, these objects 
+are accessed and modified in a single-threaded way.  It is possible to call members that only ever return 
+one value—such as L_TraderId, L_Firm, L_Symbol or L_ReferenceId—of course, but refraining can be 
+the best option because even some seemingly static methods, such as L_OrderId, do in fact get set 
+sometime after object creation and so can lead to races.  Further, operations such as L_FindPosition, 
+or iterating over order, position or execution lists will not just return incorrect results but can crash or 
+corrupt the application when accessed off the main extension thread. 
+Exceptions exist, such as L_CancelOrder, L_CancelPositionOrders, L_CancelAllOrders, and 
+L_CloseAllPositions.  One can call L_SendOrder from another strand if the summary argument was 
+created on that same strand. 
+L_Account 
+Extends L_Observable 
+char const *L_TraderId() const 
+char const *L_Firm() const 
+The trader’s clearing firm.  A value of "TRAN" indicates a training account. 
+double L_MarginFactor() const 
+The buying power multiple applicable to fully marginable stocks for this account. 
+void L_SendOrderBasic( 
+char const *symbol, 
+long type, 
+char side, 
+unsigned long shares, 
+L_PriceBase::L_PriceBaseType pricebase, 
+double priceoffset, 
+char const *market, 
+long tif, 
+bool hidden = false, 
+unsigned long visibleShares = 0, 
+double price2 = 0.0, 
+char const *market2 = 0, 
+long *correlationId = 0, 
+char const *info = 0 
+) 
+void L_SendOrder( 
+L_Summary const *summary, 
+long type, 
+char side, 
+unsigned long shares, 
+double price, 
+char const *market, 
+long tif, 
+bool hidden = false, 
+unsigned long visibleShares = 0, 
+double price2 = 0.0, 
+char const *market2 = 0, 
+long *correlationId = 0, 
+char const *info = 0 
+) 
+Send an order, for the given symbol or symbol specified by summary, of the given type, side, shares, price (or 
+pricebase and priceoffset), market, time in force, hidden, and visibleShares shares.  See below for a description of 
+the price base and offset meaning.  The price2 field is used in extended order types such as pegs.  When a market2 
+argument is provided the market and market2 arguments together correspond to the Market and Contra fields of a 
+custom route command.  The correlationId is an output argument receiving an identifier used to tie a given 
+L_SendOrder call to the corresponding L_MsgOrderRequested message sent by the L_Account observable.  The 
+L_MsgOrderRequested message returns the reference ids of any created orders and the L_OrderResult return code 
+for the call. 
+The optional info argument is an input string that will be displayed in the Info column of the Orders window in 
+the manual interface. 
+pricebase can be one of the constants in the L_PriceBase namespace, where “abs” means take the price 
+exactly as specified.  For the price bases with “r” as first character (eg, rbid, rask, rclose) the price offset modifies the 
+base relatively, or by a ratio.  So while ask:0.01 will send at the ask plus one cent, rask:0.01 will send at (ask + 0.01 * ask).  
+rbid:-0.01 will send at (bid – 0.01 * bid).  Ie, base * (1.0 + priceoffset). 
+Price bases available: 
+abs (absolute price) 
+bid 
+ask 
+mid (midpoint between bid and ask) 
+last (last trade price) 
+open (today’s open) 
+close (previous close) 
+rbid 
+rask 
+rmid 
+rlast 
+ropen 
+rclose 
+void L_CancelOrder( 
+L_Order const *order 
+) 
+Cancel the provided order. 
+double L_ClosedPL(int type = L_BPType::DEFAULT) const 
+double L_OpenPL(int type = L_BPType::DEFAULT) const 
+double L_MarkedPL(int type = L_BPType::DEFAULT) const 
+Returns Open PL + Closed PL. 
+double L_NetPL(int type = L_BPType::DEFAULT) const 
+Returns Marked PL with an approximate adjustment for trading fees, based on trader configurations in the 
+Design Tab. 
+double L_MinClosedPL(int type = L_BPType::DEFAULT) const 
+double L_MaxClosedPL(int type = L_BPType::DEFAULT) const 
+double L_MaxIntradayValue(int type = L_BPType::DEFAULT) const 
+double L_MaxIntradayDollarValue(int type = L_BPType::DEFAULT) const 
+double L_BuyingPowerInUse(int type = L_BPType::DEFAULT) const 
+double L_BuyingPower(int type = L_BPType::DEFAULT) const 
+double L_BaseBuyingPower(int type = L_BPType::DEFAULT) const 
+double L_FloatingBPMultiple(int type = L_BPType::DEFAULT) const 
+double L_Equity(int type = L_BPType::DEFAULT) const 
+double L_RunningBalance(int type = L_BPType::DEFAULT) const 
+double L_Value(int type = L_BPType::DEFAULT) const 
+double L_LongValue(int type = L_BPType::DEFAULT) const 
+double L_ShortValue(int type = L_BPType::DEFAULT) const 
+double L_DollarValue(int type = L_BPType::DEFAULT) const 
+double L_LongDollarValue(int type = L_BPType::DEFAULT) const 
+double L_ShortDollarValue(int type = L_BPType::DEFAULT) const 
+double L_NetDollarValue(int type = L_BPType::DEFAULT) const 
+long L_OpenPositionsCount(int type = L_BPType::DEFAULT) const 
+long L_LongOpenPositionsCount(int type = L_BPType::DEFAULT) const 
+long L_ShortOpenPositionsCount(int type = L_BPType::DEFAULT) const 
+long L_PendingOrdersCount(int type = L_BPType::DEFAULT) const 
+long L_PendingBuyOrdersCount(int type = L_BPType::DEFAULT) const 
+long L_PendingSellOrdersCount(int type = L_BPType::DEFAULT) const 
+long L_SharesTraded(int type = L_BPType::DEFAULT) const 
+long L_NumTrades(int type = L_BPType::DEFAULT) const 
+long L_NumExecutions(int type = L_BPType::DEFAULT) const 
+long L_AddedLiquidity(int type = L_BPType::DEFAULT) const 
+long L_AddedLiquidityExecutions(int type = L_BPType::DEFAULT) const 
+long L_RemovedLiquidity(int type = L_BPType::DEFAULT) const 
+long L_RemovedLiquidityExecutions(int type = L_BPType::DEFAULT) const 
+long L_GetShortPositionLimit(char const *symbol) const 
+Returns the number of shares borrowable or -1 for symbols that have no limit on short position size.  When the 
+account’s limit for a given symbol changes the L_Account object notifies its observers with an 
+L_MsgShortLimitChange message.  The L_Symbol and L_Size methods of this message return the new allocation. 
+L_Position *L_FindPosition(char const *symbol) const 
+Returns the position object for the given symbol or 0 if there is no position in that symbol. 
+L_Order *L_FindOrder (long referenceId) const 
+Returns the order object of the given referenceId.  ReferenceIds are the main key for orders in the 
+Lightspeed Trader API.  The referenceId is created locally on the trader’s machine for every order requested, whether or 
+not it results in a successful order on the executor or at the venue.  The principal id displayed in the manual interface is 
+the orderId, which is received from the executor and is the id used by the back office and tradedesk support.  An order 
+will immediately get a referenceId but will not have an orderId until it is acknowledged as received by the executor.  See 
+also L_FindOrderByOrderId. 
+L_Order *L_FindOrderByOrderId(long orderId) const 
+Returns the order object of the given orderId.  See also L_FindOrder. 
+void L_CloseAllPositions( 
+long securityFlags = L_SecFlag::ANY, 
+long posFlags = L_PosFlag::ANY 
+) 
+Closes positions described by securityFlags and posFlags with the closeout method chosen in the manual 
+interface Trading/Closeout tab. 
+securityFlags can be a bitwise-or combination of the flags: 
+L_SecFlag::EQUITY 
+L_SecFlag::FUTURE 
+L_SecFlag::OPTION 
+posFlags can be a bitwise-or combination of the flags: 
+L_PosFlag::LONG 
+L_PosFlag::SHORT 
+L_PosFlag::FLAT 
+All positions matching one or more of the specified security flags and one or more of the pos flags will be 
+closed.  So to close all short equities and futures call L_CloseAllPositions(L_SecFlag::EQUITY | 
+L_SecFlag::FUTURE, L_PosFlag::SHORT). 
+void L_CancelAllOrders( 
+long dayFlags = L_DayFlag::ANY, 
+long sideFlags = L_SideFlag::ANY, 
+long securityFlags = L_SecFlag::ANY, 
+long posFlags = L_PosFlag::ANY 
+) 
+Cancels orders described by dayFlags, sideFlags, securityFlags and posFlags where 
+securitiesFlags and posFlags restrict the cancels to orders on the positions matching those two arguments.  
+securitiesFlags and posFlags are described in L_CloseAllPositions above. 
+dayFlags can be a bitwise-or combination of the flags: 
+L_DayFlag::DAY 
+L_DayFlag::NONDAY 
+sideFlags can be a bitwise-or combination of the flags: 
+L_SideFlag::BUY 
+L_SideFlag::SELL 
+All orders matching any of the specified day flags and any of the side flags and on positions matching the 
+securities and pos flags will be canceled.  To cancel all non-day orders, L_CancelAllOrders(L_DayFlag::NONDAY, 
+L_SideFlag::ANY, L_SecFlag::ANY, L_PosFlag::ANY). 
+void L_CancelPositionOrders( 
+L_Position const *pos, 
+long dayFlags = L_DayFlag::ANY, 
+long sideFlags = L_SideFlag::ANY 
+) 
+Cancels orders as L_CancelAllOrders does, except only on the position pos. 
+The following methods provide iterators into lists of L_Position * and L_Order * objects for the 
+account.  For example: 
+std::stringstream output; 
+for (position_iterator it(a->positions_begin()), ite(a->positions_end()); it != ite; ++it) 
+{ 
+output << (*it)->L_Symbol() << " " << (*it)->L_TotalPrice() << std::endl; 
+} 
+Or 
+for (order_iterator it(a->active_orders_begin()), ite(a->active_orders_end()); it != ite; ++it) 
+{ 
+a->L_CancelOrder(*it); 
+} 
+position_iterator positions_begin() const 
+position_iterator positions_end() const 
+position_iterator open_positions_begin() const 
+position_iterator open_positions_end() const 
+position_iterator long_positions_begin() const 
+position_iterator long_positions_end() const 
+position_iterator short_positions_begin() const 
+position_iterator short_positions_end() const 
+order_iterator orders_begin() const 
+order_iterator orders_end() const 
+order_iterator orders_buy_begin() const 
+order_iterator orders_buy_end() const 
+order_iterator orders_sell_begin() const 
+order_iterator orders_sell_end() const 
+order_iterator active_orders_begin() const 
+order_iterator active_orders_end() const 
+order_iterator active_orders_buy_begin() const 
+order_iterator active_orders_buy_end() const 
+order_iterator active_orders_sell_begin() const 
+order_iterator active_orders_sell_end() const 
+locate_symbol_iterator locate_symbols_begin() const 
+locate_symbol_iterator locate_symbols_end() const 
+locate_symbol_iterator dereferences to char const *, eg: 
+for (locate_symbol_iterator it(a->locate_symbols_begin()), ite(a->locate_symbols_end()); it != 
+ite; ++it) 
+{ 
+} 
+L_Position 
+foo(a->L_GetShortPositionLimit(*it)); 
+char const *L_Symbol() const 
+int L_BPType() const 
+long L_Shares() const 
+double L_TotalPrice() const 
+double L_TotalPriceByAve() const 
+double L_AveragePrice() const 
+double L_AveragePriceByAve() const 
+double L_ClosedPL() const 
+double L_ClosedPLByAve() const 
+double L_OpenPL() const 
+double L_OpenPLByAve() const 
+double L_MarkedPL() const 
+double L_CostBasisTraditional() const 
+double L_CostBasisByAve() const 
+double L_MoneyInvested() const 
+double L_Value() const 
+double L_LongValue() const 
+double L_ShortValue() const 
+double L_DollarValue() const 
+double L_LongDollarValue() const 
+double L_ShortDollarValue() const 
+double L_MarginRequirement() const 
+double L_MarginFactor() const 
+double L_PLLastPrice() const 
+long L_PendingOrdersCount() const 
+long L_PendingBuyOrdersCount() const 
+long L_PendingSellOrdersCount() const 
+long L_SharesTraded() const 
+long L_NumTrades() const 
+long L_NumExecutions() const 
+long L_AddedLiquidity() const 
+long L_AddedLiquidityExecutions() const 
+long L_RemovedLiquidity() const 
+long L_RemovedLiquidityExecutions() const 
+order_iterator active_orders_begin() const 
+order_iterator active_orders_end() const 
+order_iterator active_orders_buy_begin() const 
+order_iterator active_orders_buy_end() const 
+order_iterator active_orders_sell_begin() const 
+order_iterator active_orders_sell_end() const 
+Whereas the position and order iterators dereference to position and order pointers, the execution iterators 
+dereference to const references, L_Execution const &.  For example: 
+execution_iterator it(position->executions_begin()); 
+execution_iterator itend(position->executions_end()); 
+for (; it != itend; ++it) 
+{ 
+std::stringstream output; 
+output << it->L_OrderId() << " "; 
+output << it->L_Market() << " "; 
+output << it->L_Liquidity(); 
+L_AddMessageToExtensionWnd(output.str().c_str()); 
+} 
+execution_iterator executions_begin() const 
+execution_iterator executions_end() const 
+execution_iterator executions_buy_begin() const 
+execution_iterator executions_buy_end() const 
+execution_iterator executions_sell_begin() const 
+execution_iterator executions_sell_end() const 
+execution_iterator executions_to_match_begin() const 
+execution_iterator executions_to_match_end() const 
+L_Order 
+long L_ReferenceId() const 
+long L_OrderId() const 
+const char *L_Symbol() const 
+char L_TradeSide() const 
+long L_OriginalShares() const 
+double L_OriginalPrice() const 
+const char *L_OriginalMarket() const 
+const char *L_OriginalContra() const 
+const char *L_Market() const 
+const char *L_Contra() const 
+bool L_IsMarketOrder() const 
+long L_TIF() const 
+bool L_IsHidden() const 
+long L_VisibleShares() const 
+double L_SecondaryPrice() const 
+double L_TotalPrice() const 
+double L_AveragePrice() const 
+long L_ExecutedShares() const 
+long L_ActiveShares() const 
+double L_MarketPrice() const 
+time_t L_CreateTime() const 
+time_t L_CancelTime() const 
+long L_CreateTimeMillis() const 
+long L_ReceiveTimeMillis() const 
+long L_CancelCreateTimeMillis() const 
+long L_CancelTimeMillis() const 
+The “Millis” time functions all return milliseconds since US Eastern midnight of the respective event, according 
+to the local machine’s clock. 
+bool L_CancelInitiated() const 
+long L_RejectedShares() const 
+long L_KilledShares() const 
+long L_AddedLiquidity() const 
+long L_AddedLiquidityExecutions() const 
+long L_RemovedLiquidity() const 
+long L_RemovedLiquidityExecutions() const 
+double L_ClosedPL() const 
+double L_ClosedPLByAve() const 
+char const *L_Exchange() const 
+double L_MarginRequirement() const 
+int L_BPType() const 
+execution_iterator executions_begin() const 
+execution_iterator executions_end() const 
+L_Execution 
+long L_OrderId() const 
+time_t L_ExecTime() const 
+long L_ExecTimeMillis() const 
+Returns the execution time in milliseconds since US Eastern midnight, according to the local machine’s clock. 
+char const *L_Symbol() const 
+char L_Side() const 
+long L_Shares() const 
+Returns a positive number for buy executions and a negative number for sell executions. 
+char const *L_Market() const 
+char const *L_Contra() const 
+char L_Liquidity() const 
+Returns L_Liquidity::Add or L_Liquidity::Remove. 
+bool L_IsOvernight() const 
+double L_TotalPrice() const 
+double L_AveragePrice() const 
+double L_MoneyInvested() const 
+int L_BPType() const 
+Market Data Classes 
+Overview, Creating a Summary for L_SendOrder 
+Unlike L_SendOrderBasic, the account L_SendOrder method requires an up-to-date summary 
+argument to provide the information necessary for updating the account and populating fields expected 
+by the venues.  This can reduce latency if you build the summary ahead of time.  However, the first time 
+L_CreateSummary is called for a given symbol, the summary returned is not yet up-to-date.  
+L_CreateSummary simply initiates the subscriptions required to stay up-to-date then returns 
+immediately.  Until the summary receives an L_MsgL1 response back from the quote server, the 
+summary is considered uninitialized.  Calling L_SendOrder with such an uninitialized summary can result 
+in an L_MsgOrderRequested response with an L_Result value of 
+L_OrderResult::UNINITIALIZED_SUMMARY. 
+To determine if a summary is initialized, the L_Summary class provides the L_IsInit method.  When an 
+extension needs to send an order on a symbol without having a preexisting, already initialized summary, 
+it can check this method and defer the L_SendOrder call to a HandleMessage case on L_MsgL1 
+(attaching to that summary to receive notifications of its message traffic). 
+If further, the extension needs to send orders on symbols it isn’t even sure are valid and supported by 
+Lightspeed, the L_MsgError response should receive a case too.  A summary that receives L_MsgError 
+will be marked initialized but will then be considered invalid, summary->L_IsValid() == false.  
+Calling L_SendOrder on such a summary will result in an L_Result of 
+L_OrderResult::INVALID_SUMMARY. 
+The OrderFlow class from the GenSymbol sample provides an example of such processing. 
+L_Summary 
+Extends L_Observable 
+Create an L_Summary object with L_CreateSummary, passing the symbol as argument.  Destroy the object when 
+finished with L_DestroySummary.  L_Summary is observable, notifying its observers of the messages: 
+L_MsgL1 
+L_MsgL1Update 
+L_MsgL1Change 
+L_MsgOrderImbalance 
+L_MsgIndex 
+L_MsgIndexUpdate 
+L_MsgChartSnapshot 
+L_MsgChartUpdate 
+L_MsgIndicationUpdate 
+L_MsgLULD 
+L_MsgError 
+Multithreading note:  Summaries can be created on strands other than the main extension thread (in contrast to 
+the account objects which can only be accessed from the main extension thread), however they are still single-strand 
+objects.  With the exception of L_Symbol and the L_Observer base class methods, none of the L_Summary methods 
+should be accessed off the given summary’s home strand.  That is, you can call L_CreateSummary from a strand other 
+than the main extension strand and that summary will only be safely accessed from that strand. 
+bool L_IsInit() const 
+Returns true if the summary object has received data back. 
+Until data has been received back, the validity of the symbol requested in the call to L_CreateSummary is 
+unknown.  If L_IsInit() is true, then the success of the summary creation is reflected in the next method, 
+L_IsValid().  If L_IsInit() is true, then either L_IsValid() will return false indicating an invalid symbol, or the 
+methods will all return active and updating values. 
+bool L_IsValid() const 
+Returns true if the summary object has received a valid L_MsgL1 message from the quote server, indicating the 
+symbol is valid.  See L_IsInit. 
+char const *L_Symbol() const 
+char const *L_CompanyName() const 
+char const *L_Exchange() const 
+bool L_IsListed() const 
+double L_LastPrice() const 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+double L_Close() const 
+Today’s close. 
+long long L_Volume() const 
+double L_PrevClose() const 
+Previous trading day’s close. 
+long long L_PrevVolume() const 
+Previous trading day’s volume. 
+double L_Bid() const 
+double L_Ask() const 
+long L_BidSize() const 
+long L_AskSize() const 
+char L_FSI() const 
+Financial Status Indicator. 
+int L_Borrowable() const 
+Returns the borrowable status.  Possible values include: 
+L_Borrowable::Unknown  
+L_Borrowable::Easy   
+L_Borrowable::Hard   
+L_Borrowable::Threshold  
+double L_MarginRequirement() const 
+= -1 
+= 0 
+= 1 
+= 2 
+Returns a number between 0.0 and 100.0.  For daytrading margin accounts, L_MarginRequirement() will 
+most often return 25.0. 
+char L_SSRI() const 
+The short sale restriction indicator. 
+char const *L_PrimaryMarket() const 
+double L_PrimaryOpen() const 
+double L_PrimaryClose() const 
+double L_PrimaryLast() const 
+long long L_PrimaryVolume() const 
+double L_PrimaryBid() const 
+double L_PrimaryAsk() const 
+long L_PrimaryBidSize() const 
+long L_PrimaryAskSize() const 
+double L_PrimaryPrevClose() const 
+long long L_OIBuyVolumeReg() const 
+Returns the regulatory order imbalance buy volume. 
+long long L_OISellVolumeReg() const 
+Returns the regulatory order imbalance sell volume. 
+long long L_OIBuyVolume() const 
+Returns the informal order imbalance buy volume. 
+long long L_OISellVolume() const 
+Returns the informal order imbalance sell volume. 
+long long L_OITotalVolume() const 
+double L_OIRefPrice() const 
+char L_OICrossType() const 
+char L_OIMarket() const 
+double L_OIClearingPrice() const 
+double L_OINearPrice() const 
+double L_OIFarPrice() const 
+double L_OIContinuousPrice() const 
+double L_OIClosingOnlyPrice() const 
+time_t L_OITime() const 
+L_Chart const *L_GetChart() const 
+Returns a chart of intraday minute bars (L_ChartPoint). 
+The following timeframe methods provide data as it stands over the prior timeframe (in minutes). 
+double L_TFHigh(long timeframe) const 
+double L_TFLow(long timeframe) const 
+double L_TFPrevClose(long timeframe) const 
+long long L_TFVolume(long timeframe) const 
+double L_TFChange(long timeframe) const 
+double L_TFPercentChange(long timeframe) const 
+long L_TFHighLow(long timeframe) const 
+double L_TFPriceRange(long timeframe) const 
+double L_TFPercentPriceRange(long timeframe) const 
+double L_TFVolumeRate(long timeframe) const 
+long L_LastSize() const 
+Returns the number of shares to have traded since the last prior L1Last update. 
+long L_LastTime() const 
+Returns in milliseconds since US Eastern midnight the time the L1 L_LastPrice field updated.  The time is 
+calculated from the local machine’s clock (as opposed to the upstream provided time, as in ECN update messages). 
+long L_UpdateTime() const 
+Returns in milliseconds since US Eastern midnight the time of the last L1 message (as opposed to the time the 
+L_LastPrice changed, as in L_LastTime).  Local machine time (see L_LastTime). 
+double L_Gap() const 
+double L_GapPercent() const 
+double L_GapBid() const 
+double L_GapAsk() const 
+double L_PrimaryGap() const 
+double L_PrimaryGapPercent() const 
+double L_PrimaryGapBid() const 
+double L_PrimaryGapAsk() const 
+double L_IndicationBid() const 
+double L_IndicationAsk() const 
+long L_IndicationTime() const 
+long L_LotSize() const 
+char L_LULDIndicator() const 
+double L_LULDHigh() const 
+double L_LULDLow() const 
+L_ChartPoint 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+double L_Close() const 
+long long L_Volume() const 
+time_t L_Time() const 
+L_Chart 
+size_t L_NumPoints() const 
+L_ChartPoint const *L_GetPoint(size_t n) const 
+L_Quote 
+char const *L_MMID() const 
+bool L_IsBid() const 
+double L_Price() const 
+long L_Size() const 
+long L_Time() const 
+char L_Condition() const 
+bool L_IsECN() const 
+bool L_IsDirect() const 
+char L_Source() const 
+bool L_IsClosed() const 
+bool L_IsCrossed() const 
+L_Trade 
+double L_Price() const 
+long L_Volume() const 
+long L_ChangeIndicator() const 
+The status of the trade as it affects the last price, high or low and whether it is printable.  A combination of the 
+possible values: 
+L_TradeChange::Last = 0x0001 
+L_TradeChange::Low = 0x0002 
+L_TradeChange::High = 0x0004 
+L_TradeChange::Print = 0x0008 
+time_t L_Time() const 
+char const *L_Market() const 
+char L_SaleCondition() const 
+L_FullQuote 
+Extends L_Observable 
+Create an L_FullQuote object with L_CreateFullQuote, passing the symbol as argument.  Destroy the object when 
+finished with L_DestroyFullQuote.  L_FullQuote is observable, notifying its observers of the messages: 
+L_MsgStockHalted 
+L_MsgStockResumed 
+L_MsgMarketStatus 
+L_MsgL1 
+L_MsgL1Update 
+L_MsgL1Change 
+L_MsgTrade 
+L_MsgTradeUpdate 
+L_MsgTradeCorrection 
+L_MsgTradeClosingReport 
+L_MsgL2 
+L_MsgL2Refresh 
+L_MsgL2Update 
+L_MsgECN 
+L_MsgECNUpdate 
+L_MsgDirectQuotesLost 
+L_MsgError 
+Multithreading note:  FullQuotes can be created on strands other than the main extension thread (in contrast to 
+the account objects which can only be accessed from the main extension thread), however they are still single-strand 
+objects.  With the exception of L_Symbol and the L_Observer base class methods, none of the L_FullQuote methods 
+should be accessed off the given fullquote’s home strand.  That is, you can call L_CreateFullQuote from a strand 
+other than the main extension strand, and that fullquote will only be safely accessed from that strand. 
+bool L_IsInit() const 
+Returns true if the full-quote object has received data back. 
+Until data has been received back, the validity of the symbol requested in the call to L_CreateFullQuote is 
+unknown.  If L_IsInit() is true, then the success of the full-quote creation is reflected in the next method, 
+L_IsValid().  If L_IsInit() is true, then either L_IsValid() will return false indicating an invalid symbol, or the 
+methods will all return active and updating values. 
+bool L_IsValid() const 
+Returns true if the full-quote object has received a valid L_MsgL1 message from the quote server, indicating 
+the symbol is valid.  See L_IsInit. 
+char const *L_Symbol() const 
+char const *L_Exchange() const 
+char const *L_PrimaryMarket() const 
+bool L_IsListed() const 
+double L_MarginRequirement() const 
+char const *L_CompanyName() const 
+double L_LastPrice() const 
+long L_LastSize() const 
+time_t L_LastTime() const 
+long long L_Volume() const 
+double L_Bid() const 
+double L_Ask() const 
+long L_BidSize() const 
+long L_AskSize() const 
+double L_VisibleBid() const 
+double L_VisibleAsk() const 
+long L_VisibleBidSize() const 
+long L_VisibleAskSize() const 
+L_Quote const *L_BestECNQuote(bool bid, char const *market) const 
+The best quote for the ECN of name market.  May return 0 if no such bid/ask exists. 
+L_Quote const *L_BestL2Quote(bool bid, char const *market, char l2Source = 
+L_L2Source::Nasdaq) const 
+The best market maker or national quote for market.  May return 0 if no such bid/ask exists.  Provide an 
+l2Source of L_L2Source::Nasdaq for market makers or L_L2Source::National for the national inside. 
+L_L2Source::Nasdaq = 'Q' 
+L_L2Source::National = 'N' 
+L_Quote const *L_BestQuote(bool bid, char const *market) const 
+The best quote within the merged book, covering ECNs, market makers and nationals.   May return 0 if no such 
+bid/ask exists. 
+trade_iterator trades_begin() const 
+trade_iterator trades_end() const 
+The trades iterator returns up to the most recent 200 trades.  trade_iterator dereferences to L_Trade 
+const &. 
+quote_iterator bids_begin() const 
+quote_iterator bids_end() const 
+quote_iterator asks_begin() const 
+quote_iterator asks_end() const 
+These iterators index the merged copy of all ECN, market maker best and national best quotes.  
+quote_iterator dereferences to L_Quote const &. 
+quote_iterator ecn_bids_begin(char const *ecn) const 
+quote_iterator ecn_bids_end(char const *ecn) const 
+quote_iterator ecn_asks_begin(char const *ecn) const 
+quote_iterator ecn_asks_end(char const *ecn) const 
+These iterators index individual direct ECN books.  A list of ECNs tracked by the L_FullQuote object is 
+returned by the ecn_names iterator below. 
+quote_iterator l2_bids_begin(char source) const 
+quote_iterator l2_bids_end(char source) const 
+quote_iterator l2_asks_begin(char source) const 
+quote_iterator l2_asks_end(char source) const 
+These iterators index either market maker best quotes (L_L2Source::Nasdaq) or national best quotes 
+depending on source.  Possible values for the source argument are: 
+L_L2Source::Nasdaq = 'Q' 
+L_L2Source::National = 'N' 
+direct_book_iterator ecn_names_begin() const 
+direct_book_iterator ecn_names_end() const 
+The list of currently integrated ECNs, as configured in the MMBox settings dialog.  direct_book_iterator 
+dereferences to char const *. 
+An example use of the L_FullQuote bids and asks iterators: 
+L_FullQuote *q = L_CreateFullQuote("SPY"); 
+if (q) 
+{ 
+} 
+L_AddMessageToExtensionWnd("SPY FullQuote Snapshot"); 
+L_AddMessageToExtensionWnd("bids:"); 
+for (quote_iterator it(q->bids_begin()), itend(q->bids_end()); it != itend; ++it) 
+{ 
+std::stringstream output; 
+output << it->L_Price() << " " << it->L_Size(); 
+L_AddMessageToExtensionWnd(output.str().c_str()); 
+} 
+L_AddMessageToExtensionWnd("asks:"); 
+for (quote_iterator it(q->asks_begin()), itend(q->asks_end()); it != itend; ++it) 
+{ 
+std::stringstream output; 
+output << it->L_Price() << " " << it->L_Size(); 
+L_AddMessageToExtensionWnd(output.str().c_str()); 
+} 
+L_DestroyFullQuote(q); 
+Observer Classes 
+See the L_Observer functions section near the start of this document for general discussion of observers 
+and observables. 
+L_Observer 
+L_Observer() 
+L_Observer(L_Strand *strandInit) 
+ 
+ 
+Multithreading: 
+ The zero-argument constructor will give the observer a home strand of the current strand (as returned by 
+L_GetCurrentStrand()). 
+Constructing an observer with a strand argument allows you to specify the home strand, ie, the strand 
+HandleMessage will be called from.  An observer object constructed on a strand other than its home strand should not 
+attach or subscribe to any objects from its constructor because HandleMessage calls could then execute before the 
+constructor has finished.  Observers’ destructors must always be called on their home strands. 
+ 
+virtual void HandleMessage(L_Message const *message) = 0 
+ 
+ HandleMessage is the method to override when extending L_Observer.  Messages notified from 
+L_Observables, subscriptions, scheduled or queued messages or L_AttachToAppNotifier will trigger calls to this 
+method. 
+ 
+Multithreading: 
+ Will be called on the observer’s home strand. 
+ 
+template<typename pointerToBuffer> 
+void C_QueueMessage(pointerToBuffer pMessage) 
+ 
+ Queue pMessage for delivery via HandleMessage. 
+ 
+ The pMessage argument is templated to allow passing either raw pointers or C_Ptr references.  Eg: 
+ 
+   // resend a received message 
+void A::HandleMessage(L_Message const *message) 
+{ 
+  switch (message->L_Type()) 
+  { 
+  case L_MsgL1::id: 
+   ... 
+   otherobj->C_QueueMessage(message); 
+   break; 
+  } 
+} 
+ 
+or 
+ // allocate and keep a message 
+C_Ptr<MyMessageClass> pmessage(C_Alloc<MyMessageClass>()); 
+ 
+ if (pmessage) 
+ { 
+  obj->C_QueueMessage(pmessage); 
+ } 
+ 
+or just 
+ 
+ obj->C_QueueMessage(C_Alloc<MyMessageClass>()); 
+ 
+ 
+Multithreading: 
+ Can be called from any thread, while the HandleMesssage call triggered will be on the observer’s home 
+strand. 
+ 
+template<typename pointerToBuffer> 
+void C_ScheduleMessage(pointerToBuffer pMessage, long long hn_when) 
+Schedules a HandleMessage call at time hn_when, where hn_when is in hundred-nanoscecond intervals 
+since Jan 1, 1601 (as used in FILETIME and waitable timers in Windows system calls). 
+pMessage is templated for use as described in C_QueueMessage. 
+Multithreading: 
+Can be called from any thread. 
+template<typename pointerToBuffer> 
+void C_QueueMessageDelayed(pointerToBuffer message, long millisfromnow) 
+Queue message in millisfromnow milliseconds.  Equivalent to C_ScheduleMessage(message, 
+L_GetHNTime() + long long(millisfromnow) * l_hn_per_millisecond). 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *L_GetHomeStrand() const 
+Multithreading: 
+Can be called from any thread. 
+L_Observable 
+L_Observable() 
+L_Observable(L_Strand *strandInit) 
+Multithreading: 
+Zero-argument-constructing L_Observable causes the current strand to be set as the observable’s strand.  
+The strand can be specified as argument. 
+Since there is no HandleMessage callback, the restriction on observers, that they not be destroyed off their 
+home strand, does not apply to L_Observables (unless L_Observer is also extended). 
+C_Notify calls made from the observable’s strand will cause attached clients with the same home strand to 
+receive their HandleMessage calls before C_Notify has returned (unless such a synchronous call would result in 
+recursion, thereby confusing the order of messages processed).  An observer on one strand will receive its messages in 
+the same sequence they were notified, though potentially simultaneously with observers from other strands and not 
+necessarily before C_Notify has returned in the observable’s strand. 
+void L_Attach(L_Observer *observer) const 
+Register observer’s interest in receiving messages delivered by C_Notify calls (or by Lightspeed Trader, in the 
+case of built-in observables). 
+Multithreading: 
+Can be called from any thread. 
+void L_Detach(L_Observer *observer) const 
+Discontinue sending messages to observer. 
+Multithreading: 
+Can be called from any thread. 
+template<typename pointerToBuffer> 
+void C_Notify(pointerToBuffer pMessage) 
+Trigger HandleMessage with pMessage on all attached observers. 
+Multithreading: 
+Can be called from any thread.  If the currently active strand is the observable’s strand, 
+L_GetCurrentStrand() == observable.L_GetStrand(), the HandleMessage calls for attached observers will 
+be synchronously called—in the present call stack—unless that would result in a recursive call.  If the present strand is 
+different from the observable’s strand, the message will be asynchronously queued. 
+template<typename pointerToBuffer> 
+void C_ScheduleNotification(pointerToBuffer pMessage, long long hn_when) 
+Trigger HandleMessage with pMessage on all attached observers at time hn_when, where hn_when is 
+in hundred-nanoscecond intervals since Jan 1, 1601 (as used in FILETIME and waitable timers in Windows system calls). 
+Multithreading: 
+Can be called from any thread. 
+template<typename pointerToBuffer> 
+void C_NotifyDelayed(pointerToBuffer pMessage, long millisfromnow) 
+Notify pMessage in millisfromnow milliseconds.  Equivalent to 
+C_ScheduleNotification(pMessage, L_GetHNTime() + long long(millisfromnow) * 
+l_hn_per_millisecond) 
+Multithreading: 
+Can be called from any thread. 
+L_Strand *L_GetStrand() const 
+Multithreading: 
+Can be called from any thread. 
+Thread Classes 
+See the L_Thread functions section near the start of this document for general discussion of threading. 
+L_Strand 
+L_Port *L_GetPort() const 
+L_Thread 
+unsigned __int32 L_ThreadId() const 
+L_Strand *L_StrandInProgress() const 
+L_Work 
+The L_Work class provides the interface for work asynchronously triggered on an L_Port.  Strands are 
+implemented as L_Work procedures that ensure only one per strand is in progress at any one time. 
+L_Work extends OVERLAPPED only for the convenience of completion port implementations.  This allows 
+IO to be incorporated into a port implementation without having to allocate separate records for the 
+OVERLAPPED structures required by completion ports.  See L_Port below. 
+class __declspec(novtable) L_Work : public OVERLAPPED 
+{ 
+public: 
+L_Work() 
+{ 
+OVERLAPPED *po = this; 
+ZeroMemory(po, sizeof(OVERLAPPED)); 
+} 
+virtual void DoWork(L_Thread *currentThread = 0, BOOL opResult = true, DWORD 
+numberOfBytes = 0, ULONG_PTR completionKey = 0) = 0; 
+}; 
+L_Port 
+L_Port provides the interface extensions can implement to allow Lightspeed Trader observer objects to 
+interact with extension created threads.  A default reference implementation of L_Port, C_LibPort, is 
+provided in the API headers. 
+Implementations of L_Port are required only to ensure the work argument’s DoWork method is 
+asynchronously called.  In particular, the OVERLAPPED base class of the L_Work object can be completely 
+ignored.  Lightspeed Trader calls to QueueWork will pass 0 for both numberOfBytes and 
+completionKey.  The OVERLAPPED base class can, however, be taken advantage of in implementations, 
+as it is in C_LibPort. 
+Sequential calls to QueueWork need not result in the first work finishing before the second.  The 
+“queue” should be processed fairly, but multiple threads can read from it simultaneously.  The 
+L_Strand object that uses the L_Port interface will not queue a work object if another is still in 
+progress (and each workload may involve multiple HandleMessage and QueueDelete calls). 
+class __declspec(novtable) L_Port 
+{ 
+public: 
+virtual bool QueueWork(L_Work *work, DWORD numberOfBytes = 0, ULONG_PTR 
+completionKey = 0) = 0; 
+L_Buffer *l_Buffer; 
+}; 
+C_LibPort 
+Extends L_Port 
+C_LibPort is a reference implemention of the L_Port interface utilizing Windows completion ports.  
+Another reference implementation is provided in the SortingAndThreadingASIO sample, AsioPort.  
+AsioPort uses an ASIO io_service where C_LibPort directly uses a completion port.  Both support 
+sharing a group of threads among any different number of strands.  Neither of these port 
+implementations supports UI threads.  For an MFC UI thread implementation that doesn’t support 
+groups of threads, see GrayBoxUIThread in MultiGrayBoxSample. 
+C_CreateSingleStrandThread, documented in the L_Thread functions section at the start of this 
+document, creates a C_LibPort with exactly one thread. 
+typedef L_Port alloc_interface_type; 
+enum : long { id = L_BufferType::LibCompletionPort }; 
+static C_Ptr<C_LibPort> CreatePort(unsigned long NumberOfConcurrentThreads) 
+C_Allocs a C_LibPort object with a completion port created with a concurrency value 
+NumberOfConcurrentThreads.  No threads will have been created yet after this call.  See 
+CreateIoCompletionPort for an explanation of NumberOfConcurrentThreads—it generally indicates how many 
+cores you’d like the port to be limited to.  A value of zero will default the concurrency to the number cores as the system 
+has. 
+unsigned long StartCRTThreads(unsigned long numThreads) 
+Demonstrates using C_LibPort with beginthreadex.  This method will start numThreads threads, taking 
+care of the protocol for using IncRunningThreadCount, GetThreadStopObject and StartProc.  Simply 
+C_Ptr<C_LibPort> port = C_LibPort::CreatePort(…) and port->StartCRTThreads(…) are all you need 
+for a fully functioning port with running threads. 
+void IncRunningThreadCount() 
+Call this method every time another thread is created and added to this port. 
+C_StopWork *GetThreadStopObject() 
+This object stays allocated until all threads in a C_LibPort have exited.  When the C_LibPort object is 
+destroyed (its last C_Ptr<C_LibPort> reference goes out of scope and last L_Strand created on it is destroyed), the 
+C_LibPort queues this work object n times, where n threads are running.  Each time it is processed another thread will 
+exit. 
+C_StopWork is allocated with C_Alloc, so the extension dll will not be unloaded until all threads have 
+returned. 
+static unsigned int __stdcall StartProc(void *param) 
+The thread procedure that should be called by any threads participating in a C_LibPort.  The param 
+parameter should be port->GetThreadStopObject() for the C_LibPort the thread is participating in. 
+DWORD GetNumberOfConcurrentThreads() const 
+The concurrency of this completion port. 
+bool Associate(HANDLE hFile, ULONG_PTR completionKey) 
+Win32 IO handling routine.  Calls CreateIoCompletionPort on this already created completion port with 
+the specified handle and completionKey.  See CreateIoCompletionPort in Windows documention. 
+HANDLE Handle() const 
+bool QueueWork(L_Work *work, DWORD numberOfBytes = 0, ULONG_PTR completionKey = 0) 
+Simply posts work to the underlying completion port.  StartProc of one of the started threads will retrieve 
+work and call its DoWork method. 
+C_StrandLocalPtr 
+C_StrandLocalPtr is a reference class for using the strand local storage functions.  A 
+C_StrandLocalPtr will evaluate to nullptr on its first access within a strand, at which time reset can 
+be called providing it a value.  C_StrandLocalPtr objects are moveable, but not copyable.  They do not 
+have to be global as thread local storage ordinarily is.  C_StrandLocalPtr does a lookup into an 
+associative map from L_StrandStorageId * pointers to values assigned with reset, so it could become 
+expensive when used in large quantities.  It is provided as analogous to thread local storage—thread 
+local storage alone is insufficient for “single-stranded” work as a given strand may run on different 
+threads at different times. 
+typedef T element_type; 
+typedef T value_type; 
+typedef T *pointer; 
+typedef T &reference; 
+typedef L_StrandStorageId *Id; 
+void reset(pointer p, void (*deleter)(pointer) = C_StdDelete<T>) 
+reference operator*() const 
+pointer operator->() const 
+pointer get() const 
+Multithreading: 
+Should be accessed from an active strand.  There is always an active strand on the main extension thread, but 
+custom threads can have contexts where no strand is active (eg, in the main thread procedure).  HandleMessage is 
+always called in the context of a strand. 
+Sorter Classes 
+See the  L_Sorter functions section near the start of this document for general discussion of sorts. 
+C_SortOperator 
+Extends L_SortOperator 
+Extend C_SortOperator and implement ToKeep and Compare to provide a filter and less-than operator 
+for a sort.  Both have argument types of L_Observer *, which should be casted, with static_cast, to 
+your sort element type.  Allocate the operator with C_Alloc and provide the operator to C_CreateSort.  
+See the reference sort operator C_LibSortOperator for an example below. 
+It can be convenient too to use a C_SortOperator to store data that will be accessed by the constructor 
+of the sortElement class as the sort operator will be created before C_AddElement or 
+C_AddMarketElements and will not be destroyed, barring C_UpdateSort which you can refrain from 
+calling, until after all elements are destroyed in response to C_DestroySort. 
+template<typename sortElement> 
+class C_SortOperator : public L_SortOperator 
+{ 
+public: 
+typedef sortElement sort_element_type; 
+typedef typename sortElement::param_type param_type; 
+typedef L_SortOperator const alloc_interface_type; 
+enum : long { id = L_BufferType::LibSortOperator }; 
+virtual bool ToKeep(L_Observer *element) const = 0; 
+virtual bool Compare(L_Observer *lhs, L_Observer *rhs) const = 0; 
+}; 
+ 
+C_LibSortOperator 
+Extends C_SortOperator 
+ 
+C_LibSortOperator may be convenient to extend to quickly inherit the default behavior of sorts (to remain 
+unfiltered and use the operator< defined on the sort element type). 
+ 
+template<typename sortElement> 
+class C_LibSortOperator : public C_SortOperator<sortElement> 
+{ 
+public: 
+ virtual bool ToKeep(L_Observer *element) const 
+ { 
+  return true; 
+ } 
+ virtual bool Compare(L_Observer *lhs, L_Observer *rhs) const 
+ { 
+  sortElement *l(static_cast<sortElement *>(lhs)); 
+  sortElement *r(static_cast<sortElement *>(rhs)); 
+ 
+  return *l < *r; 
+ } 
+}; 
+ 
+C_Sort 
+Extends L_Observable 
+ 
+typedef sortElement sort_element_type; 
+typedef typename sortElement::param_type param_type; 
+typedef … iterator; 
+ 
+ class C_MsgUpdate : public L_MsgSortUpdate 
+ { 
+ public: 
+  C_Sort const *C_SourceSort() const; 
+ 
+ As an immutable message, the adds and removes iterators of this message can be accessed from any strand.  
+The sortElements they dereference to still must be treated with consideration as to the strands that modify them. 
+The message maintains a reference to the sort, so a message processed after C_DestroySort has been called 
+will keep the sort alive until the message has been processed. 
+ 
+ The iterators dereference to sortElement pointers. 
+ 
+  iterator adds_begin() const; 
+  iterator adds_end() const; 
+  iterator removes_begin() const; 
+  iterator removes_end() const; 
+ }; 
+ 
+void C_AddElement(typename param_type param) 
+Will cause a sortElement object to be constructed on the sort strand with this sort and param passed to its 
+constructor.  This method can be called from any strand. 
+void C_UpdateElement(sortElement const *el) 
+Will cause el to be considered altered in sort order or filter status, triggering the sorter to move it to a new 
+location in the sort and to be reintroduced or removed from the tracked list for notification based on the filter and less
+than operator given in the sort operator.  This may result in the notification of a new C_MsgUpdate message.  This work 
+is done on the sort strand.  This method should be called from the sort strand (as it would be in the sort element’s 
+HandleMessage method). 
+void C_UpdateSort(C_SortOperator<sortElement> const *sortOp, long elementCount, long 
+startingRank) 
+template<typename sortOpPtr> 
+void C_UpdateSort(sortOpPtr sortOp, long elementCount, long startingRank) 
+Will cause the list of sortElements to be resorted and filtered based on the new filter and less-than operator 
+provided by sortOp.  A new C_MsgUpdate will likely be send.  This work is done on the sort strand.  This method can be 
+called from any strand. 
+template<typename toKeepFuncType, typename compareFuncType> 
+void C_UpdateSort(long elementCount, long startingRank, compareFuncType compare, 
+toKeepFuncType toKeep) 
+Similarly to C_UpdateSort above, this method will trigger a resort, but using  
+the default function-specified sort operator. 
+void C_UpdateSortRange(long elementCount, long startingRank) 
+C_SortOperator<sortElement> const *C_CurrentSortOperator() const 
+C_UpdateSortRange is like C_UpdateSort except will only cause the sort to use a new sort range.  It will 
+likely produce a new C_MsgUpdate message. 
+void C_AddMarketSummaryElements() 
+C_AddMarketSummaryElement will add all Listed and Nasdaq stocks supported by the quote server to the 
+sort.  This requires that sortElement::param_type be L_Summary const *.  A sortElement constructor will be 
+called for each summary in this list of approximately 8000 stocks.  When using this function C_AddElement is not 
+needed. 
+This function has effect only if Lightspeed Trader is configured with a market scanner server which can be 
+tested for with L_HasMarketSubscription(). 
+template<typename filterFunc> 
+void C_AddMarketSummaryElements(filterFunc filt) 
+This method performs the same function as C_AddMarketSummaryElements with no arguments, but allows 
+the list of stocks to be limited to those passing the filter function filt—where filt is any function or operator returning 
+bool and accepting a char const *symbol argument, eg: 
+sort->C_AddMarketSummaryElements([](char const *symbol) -> bool { return foo(symbol, …); }); 
+This function has effect only if Lightspeed Trader is configured with a market scanner server which can be 
+tested for with L_HasMarketSubscription(). 
+iterator begin() const 
+iterator end() const 
+The begin and end iterator index the sorted list of sortElements directly.  They appear in sort order, but unfiltered.  
+These iterators must be accessed from the sort strand only. 
+Memory Classes 
+L_Buffer 
+class __declspec(novtable) L_Buffer 
+{ 
+public: 
+virtual long L_BufferType() const = 0; 
+virtual void const *L_Storage() const = 0; 
+virtual void const *L_Object() const = 0; 
+virtual void const *L_Interface() const = 0; 
+virtual bool L_IncRef() const = 0; 
+virtual void L_DecRef() const = 0; 
+virtual void L_Init(long typeInit, size_t offset, size_t ioffset, void 
+(*destruct)(void *memory)) = 0; 
+}; 
+An object, pOb, allocated by C_Alloc<T>, will have an L_Buffer object, pOb->l_Buffer.  On that buffer, 
+L_BufferType() will return T::id.  L_Object() will return the address pOb.  L_Interface() will return the 
+address of the base class, T::alloc_interface_type, in pOb.  L_IncRef(), and L_DecRef() manage the lifetime 
+of the buffer—C_Ptr<T> will use these on construction and destruction.  L_Init is called by C_Alloc to set up the 
+type id and addresses above. 
+C_Ptr<T> 
+void reset() 
+void reset(T *r) 
+reference operator*() const 
+pointer operator->() const 
+pointer get() const 
+void swap(C_Ptr &other) 
+A basic reference-counting intrusive pointer class designed for objects returned from C_Alloc.  Supports, in 
+addition to the above, copy, move and initialization constructors, as well as comparison operators and the following two 
+free functions available for override: 
+template<typename T> 
+bool ls_ptr_inc_ref(T *p) { return p->l_Buffer->L_IncRef(); } 
+template<typename T> 
+void ls_ptr_dec_ref(T *p) { p->l_Buffer->L_DecRef(); } 
+Message Classes 
+L_Message 
+long L_Type() const 
+char const *L_Symbol() const 
+Quote Messages 
+L_MsgError 
+The L_MsgError message is received from market data objects for which an invalid symbol has 
+been provided. 
+enum { id = L_Msg::Error }; 
+L_MsgTrade 
+enum { id = L_Msg::Trade }; 
+class L_MsgTrade::L_TradeTick 
+{ 
+} 
+double L_Price() const 
+long L_Volume() const 
+long L_ChangeIndicator() const 
+time_t L_Time() const 
+char const *L_Market() const 
+char L_SaleCondition() const 
+typedef  iterator; 
+iterator begin() const 
+iterator end() const 
+The iterators begin and end provide an index into a list of the last 50 trades.  The 
+L_MsgTrade::iterator type dereferences to an L_MsgTrade::L_TradeTick const & object.  As an example 
+of using the L_MsgTrade iterator to retrieve the print history of this trade snapshot: 
+for (L_MsgTrade::iterator it(pMsg->begin()), ite(pMsg->end()); it != ite; ++it) 
+{ 
+L_AddMessageToExtensionWnd(std::to_string(it->L_Price()).c_str()); 
+} 
+L_MsgTradeUpdate 
+enum { id = L_Msg::TradeUpdate }; 
+double L_Price() const 
+long long L_Volume() const 
+bool L_Printable() const 
+char const *L_Market() const 
+char L_SaleCondition() const 
+time_t L_Time() const 
+long L_ChangeIndicator() const 
+L_MsgTradeCorrection 
+enum { id = L_Msg::TradeCorrection }; 
+double L_High() const 
+double L_Low() const 
+double L_Last() const 
+long long L_Volume() const 
+L_MsgTradeClosingReport 
+enum { id = L_Msg::TradeClosingReport }; 
+double L_High() const 
+double L_Low() const 
+double L_Last() const 
+long long L_Volume() const 
+L_MsgL1 
+This L1 snapshot includes information about last trade and volume, though the update message, 
+L_MsgL1Update only arrives on national and primary market inside updates. 
+enum { id = L_Msg::L1 }; 
+char const *L_CompanyName() const 
+char const *L_Market() const 
+double L_LastPrice() const 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+double L_Close() const 
+long long L_Volume() const 
+double L_PrevClose() const 
+long long L_PrevVolume() const 
+double L_Bid() const 
+double L_Ask() const 
+long L_BidSize() const 
+long L_AskSize() const 
+char L_FSI() const 
+int L_Borrowable() const 
+double L_MarginRequirement() const 
+char const *L_PrimaryMarket() const 
+double L_PrimaryOpen() const 
+double L_PrimaryClose() const 
+double L_PrimaryLast() const 
+long long L_PrimaryVolume() const 
+double L_PrimaryBid() const 
+double L_PrimaryAsk() const 
+long L_PrimaryBidSize() const 
+long L_PrimaryAskSize() const 
+double L_PrimaryPrevClose() const 
+char L_SSRI() const 
+L_MsgL1Change 
+enum { id = L_Msg::L1Change }; 
+char const *L_CompanyName() const 
+char const *L_Market() const 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+double L_Close() const 
+long long L_Volume() const 
+double L_PrevClose() const 
+int L_Borrowable() const 
+double L_MarginRequirement() const 
+char L_SSRI() const 
+double L_PrimaryOpen() const 
+double L_PrimaryClose() const 
+L_MsgL1Update 
+With the L1 snapshot, L_MsgL1, and this update message both the L1 inside and the trade price 
+and volume can be followed, though L_MsgL1Update is not sent on every trade.  The L_UpdateLow 
+and L_UpdateHigh methods provide basic information on trades since the last update. 
+enum { id = L_Msg::L1Update }; 
+double L_Bid() const 
+double L_Ask() const 
+long L_BidSize() const 
+long L_AskSize() const 
+double L_Last() const 
+double L_UpdateLow() const 
+The lowest trade price since the last L_MsgL1Update message. 
+double L_UpdateHigh() const 
+The highest trade price since the last L_MsgL1Update message. 
+long long L_Volume() const 
+char L_Source() const 
+double L_PrimaryLast() const 
+long long L_PrimaryVolume() const 
+double L_PrimaryBid() const 
+double L_PrimaryAsk() const 
+long L_PrimaryBidSize() const 
+long L_PrimaryAskSize() const 
+L_MsgL2 
+enum { id = L_Msg::L2 }; 
+class L_MsgL2::L_MMQuote 
+{ 
+} 
+char const *L_MMID() const 
+double L_Price() const 
+bool L_Closed() const 
+char L_Condition() const 
+long L_Size() const 
+long L_Time() const 
+Time is in milliseconds since midnight.  The time is provided by the upstream source.  Where no time 
+was provided by the source, L_Time returns LONG_MIN, as defined in Windows header limits.h. 
+char L_Source() const 
+typedef  iterator; 
+iterator bids_begin() const 
+iterator bids_end() const 
+iterator asks_begin() const 
+iterator asks_end() const 
+The iterators bids_begin, bids_end, asks_begin and asks_end provide an index into a list of quotes at 
+all market makers or nationals.  The L_MsgL2::iterator type dereferences to an L_MsgL2::L_MMQuote const 
+& object.  As an example of using the L_MsgL2 iterator to retrieve the bid side of this snapshot: 
+for (L_MsgL2::iterator it(pMsg->bids_begin()), ite(pMsg->bids_end()); it != ite; ++it) 
+{ 
+L_AddMessageToExtensionWnd(std::to_string(it->L_Price()).c_str()); 
+} 
+L_MsgL2Refresh 
+Extends L_MsgL2 
+enum { id = L_Msg::L2Refresh }; 
+L_MsgL2Update 
+enum { id = L_Msg::L2Update }; 
+char L_Source() const 
+char const *L_MMID() const 
+double L_Bid() const 
+double L_Ask() const 
+long L_BidSize() const 
+long L_AskSize() const 
+bool L_Closed() const 
+char L_Condition() const 
+long L_Time() const 
+Time is in milliseconds since midnight.  The time is provided by the upstream source.  Where no time was 
+provided by the source L_Time returns LONG_MIN, as defined in Windows header limits.h. 
+L_MsgECNList 
+enum { id = L_Msg::ECNList }; 
+typedef  iterator; 
+iterator begin() const 
+iterator end() const 
+The iterators begin and end provide an index into a list of ECN names available for subscription.  The 
+L_MsgECNList::iterator type dereferences to a char const * object.  As an example of using the 
+L_MsgECNList iterator to retrieve the ECNs: 
+for (L_MsgECNList::iterator it(pMsg-> begin()), ite(pMsg-> end()); it != ite; ++it) 
+{ 
+L_AddMessageToExtensionWnd(*it); 
+} 
+Or to simply copy them to an STL set of strings, for example: 
+std::set<std::string> ecns(pMsg->begin(), pMsg->end()); 
+L_MsgECN 
+enum { id = L_Msg::ECN }; 
+class L_MsgECN::L_ECNQuote 
+{ 
+} 
+double L_Price() const 
+long L_Size() const 
+long L_Time() const  
+Time is in milliseconds since midnight.  The time is provided by the upstream source.  Where no time 
+was provided by the source, L_Time returns LONG_MIN, as defined in Windows header limits.h. 
+char const *L_MMID() const 
+typedef  iterator; 
+iterator bids_begin() const 
+iterator bids_end() const 
+iterator asks_begin() const 
+iterator asks_end() const 
+The iterators bids_begin, bids_end, asks_begin and asks_end provide an index into a list of quotes at 
+all market makers or nationals.  The L_MsgECN::iterator type dereferences to an L_MsgECN::L_ECNQuote const 
+& object.  As an example of using the L_MsgECN iterator to retrieve the bid side of this snapshot: 
+for (L_MsgECN::iterator it(pMsg->bids_begin()), ite(pMsg->bids_end()); it != ite; ++it) 
+{ 
+L_AddMessageToExtensionWnd(std::to_string(it->L_Price()).c_str()); 
+} 
+L_MsgECNUpdate 
+enum { id = L_Msg::ECNUpdate }; 
+char const *L_MMID() const 
+char L_Side() const 
+double L_Price() const 
+long L_Size() const 
+long L_Time() const 
+Time is in milliseconds since midnight.  The time is provided by the upstream source.  Where no time was 
+provided by the source, L_Time returns LONG_MIN, as defined in Windows header limits.h. 
+L_MsgMarketStatus 
+enum { id = L_Msg::MarketStatus }; 
+char L_Status() const 
+The open/close/halted status of the market.  Possible values of L_Status(): 
+L_Market::MorningBefore 
+L_Market::Premarket  
+L_Market::Preopening  
+L_Market::RegSessionOpen 
+L_Market::ExtSessionOpen 
+L_Market::Closed  
+L_Market::Halted 
+L_Market::Resumed 
+= 'H' 
+= 'I' 
+= 'M' 
+= 'J' 
+= 'P' 
+= 'F' 
+= 'G' 
+= 'D' 
+The current status can be queried also with L_MarketStatus().  All constants except L_Market::Resumed 
+are returned at various times during the trading day.  After receipt of L_Market::Resumed L_MarketStatus() will 
+return L_Market::RegSessionOpen. 
+L_MsgStockHalted 
+enum { id = L_Msg::StockHalted }; 
+time_t L_Time() const 
+char const *L_Reason() const 
+L_MsgStockResumed 
+enum { id = L_Msg::StockResumed }; 
+time_t L_Time() const 
+L_MsgDirectQuotesLost 
+enum { id = L_Msg::DirectQuotesLost }; 
+char const *L_MMID() const 
+L_MsgOrderImbalance 
+enum { id = L_Msg::OrderImbalance }; 
+bool L_Add() const 
+If false this is a clear message, otherwise the remaining methods return latest imbalance information. 
+char L_RegImbalance() const 
+long long L_BuyVolumeReg() const 
+long long L_SellVolumeReg() const 
+long long L_BuyVolume() const 
+long long L_SellVolume() const 
+long long L_TotalVolume() const 
+double L_RefPrice() const 
+char L_CrossType() const 
+char L_Market() const 
+double L_ClearingPrice() const 
+double L_NearPrice() const 
+double L_FarPrice() const 
+double L_ContinuousPrice() const 
+double L_ClosingOnlyPrice() const 
+time_t L_Time() const 
+L_MsgChartSnapshot 
+enum { id = L_Msg::ChartSnapshot }; 
+L_MsgChartUpdate 
+enum { id = L_Msg::ChartUpdate }; 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+double L_Close() const 
+long long L_Volume() const 
+time_t L_Time() const 
+L_MsgIndex 
+enum { id = L_Msg::Index }; 
+double L_Value() const 
+double L_Change() const 
+double L_Open() const 
+double L_High() const 
+double L_Low() const 
+char const *L_Exchange() const 
+L_MsgIndexUpdate 
+enum { id = L_Msg::IndexUpdate }; 
+double L_Value() const 
+double L_Change() const 
+L_MsgIndicationUpdate 
+enum { id = L_Msg::IndicationUpdate }; 
+double L_Bid() const 
+double L_Ask() const 
+long L_Time() const 
+L_MsgLULD 
+enum { id = L_Msg::LULD }; 
+char L_Indicator() const 
+double L_High() const 
+double L_Low() const 
+Account Messages 
+L_MsgAccountChange 
+enum { id = L_Msg::AccountChange }; 
+L_MsgOrderRequested 
+enum { id = L_Msg::OrderRequested }; 
+long L_CorrelationId() const 
+The correlation id returned to the original call of L_SendOrder to which this message is in response. 
+long L_Result() const 
+The L_OrderResult code. 
+unsigned int L_SharesSent() const 
+long L_Order1ReferenceId() const 
+long L_Order2ReferenceId() const 
+L_Order1ReferenceId and L_Order2ReferenceId return the integer referenceId that can be used in 
+L_Account::L_FindOrder calls to retrieve an L_Order * object. 
+On a buy order L_Order1ReferenceId will return a non-zero value on success, or 0 if no order was created.  
+On a sell order either, both or neither of L_Order1ReferenceId and L_Order1ReferenceId will return non-zero 
+referenceIds.  This is done in the short sale management functionality of Lightspeed Trader, where one order may be a 
+long sale (L_Side::SELL) and the other a short sale (L_Side::SHORT). 
+long L_SSMReplacedReferenceId() const 
+If this order was triggered by the Lightspeed Trader short sale management functionality, the referenceId of the 
+original order being modified is returned here. 
+L_MsgOrderChange 
+enum { id = L_Msg::OrderChange }; 
+long L_ReferenceId() const 
+long L_OrderId() const 
+long L_Category() const 
+L_Category describes the type of order event, and can be any of: 
+L_OrderChange::Other 
+L_OrderChange::Create 
+L_OrderChange::Receive 
+L_OrderChange::Exec 
+L_OrderChange::CancelCreate 
+L_OrderChange::CancelRejection 
+L_OrderChange::Cancel 
+L_OrderChange::Kill 
+L_OrderChange::Rejection 
+L_Execution const *L_Exec() const 
+L_MsgPositionChange 
+enum { id = L_Msg::PositionChange }; 
+L_MsgShortLimitChange 
+enum { id = L_Msg::ShortLimitChange }; 
+long L_Size() const 
+App Notifier Messages 
+L_MsgSymbolChanged 
+enum { id = L_Msg::SymbolChanged }; 
+L_MsgLinkStatus 
+enum { id = L_Msg::LinkStatus }; 
+long L_Status() const 
+The connection event.  Possible values of L_Status(): 
+L_Link::ExecutorLost 
+L_Link::ExecutorEstablished 
+L_Link::QuoteLost 
+L_Link::QuoteEstablished 
+L_Link::MarketLost 
+L_Link::MarketEstablished 
+The current connection status of the executor and quote server can be queried with L_IsExecutorConnected() 
+and L_IsQuoteConnected(). 
+Sorter Messages 
+L_MsgSortUpdate 
+L_MsgSortUpdate is the base class of the template<sortElement> 
+C_Sort<sortElement>::C_MsgUpdate class. 
+enum { id = L_Msg::SortUpdate }; 
+long L_TotalToKeep() const 
+L_Sort const *L_SourceSort() const 
+typedef ... iterator; 
+iterator adds_begin() const 
+iterator adds_end() const 
+iterator removes_begin() const 
+iterator removes_end() const 
+The L_MsgSortUpdate::iterator dereferences to L_Observer *, that being the observer interface on 
+the sort element type.  Eg: 
+for (auto it(m->adds_begin()), itend(m->adds_end()); it != itend; ++it) 
+{ 
+SortElement *sortEl = static_cast<SortElement *>(*it); 
+... 
+} 
+C_Sort<sortElement>::C_MsgUpdate adds and removes iterators dereference to sortElement * without need 
+of a static_cast. 
+Constants 
+L_PriceBase::abs = 0 
+L_PriceBase::bid = 1 
+L_PriceBase::ask = 2 
+L_PriceBase::mid = 3 
+L_PriceBase::last = 4 
+L_PriceBase::open = 5 
+L_PriceBase::close = 6 
+L_PriceBase::rbid = 7 
+L_PriceBase::rask = 8 
+L_PriceBase::rmid = 9 
+L_PriceBase::rlast = 10 
+L_PriceBase::ropen = 11 
+L_PriceBase::rclose = 12 
+L_BPType::ALL 
+L_BPType::DEFAULT 
+L_BPType::EQUITIESOPTIONS 
+L_BPType::FUTURES 
+L_BPType::OPTIONS 
+const double ls_epsilon = 0.00000001; 
+long long const l_hn_per_millisecond = 10000LL; 
+L_OrderType::MARKET 
+L_OrderType::LIMIT 
+L_OrderType::STOP 
+L_OrderType::MOC 
+L_OrderType::LOC 
+L_OrderType::CO 
+L_OrderType::LOCI 
+L_OrderType::MOO 
+L_OrderType::LOO 
+L_OrderType::LOOI 
+L_OrderType::ADDO 
+L_OrderType::NROT 
+L_OrderChange::Other 
+L_OrderChange::Create 
+L_OrderChange::Receive 
+L_OrderChange::Exec 
+L_OrderChange::CancelCreate 
+L_OrderChange::CancelRejection 
+L_OrderChange::Cancel 
+L_OrderChange::Kill 
+L_OrderChange::Rejection 
+L_OrderResult::ORDER_SENT_OK = 0 
+L_OrderResult::SOES_ORDER_DISABLED 
+L_OrderResult::MM_IN_EXCLUSION_LIST 
+L_OrderResult::ZERO_SHARES_ORDERED 
+L_OrderResult::EXECUTIONS_DISABLED 
+L_OrderResult::BUYING_POWER_EXCEEDED 
+L_OrderResult::SHORT_SELL_VIOLATION 
+L_OrderResult::STOCK_NOT_SHORTABLE 
+L_OrderResult::EXECUTOR_NOT_CONNECTED 
+L_OrderResult::MAXORDERSHARES_EXCEEDED 
+L_OrderResult::WAIT_CONSTRAINT_VIOLATION 
+L_OrderResult::STOCK_HALTED 
+L_OrderResult::MKXT_BOOK_OR_KILL 
+L_OrderResult::SMALL_CAPS_NOT_SOESABLE 
+L_OrderResult::OWN_CROSSING 
+L_OrderResult::CANNOT_TRADE_SYMBOL 
+L_OrderResult::MARKET_HALTED 
+L_OrderResult::FUTURES_MARGINABILITY_UNKNOWN 
+L_OrderResult::TRADINGMONITOR_BLOCKED_ORDER 
+L_OrderResult::DECLINED_AT_CONFIRM_BY_USER 
+L_OrderResult::ROUTING_BLOCKED_ORDER 
+L_OrderResult::OTHER_REJECTION 
+L_OrderResult::EXECUTOR_NOT_LOGGED_IN 
+L_OrderResult::UNINITIALIZED_SUMMARY 
+L_OrderResult::INVALID_SUMMARY 
+L_OrderResult::INVALID_ORDER_TYPE 
+L_OrderResult::DUPLICATE_ORDER_REJECT 
+L_OrderResult::INSUFFICIENT_SHARES 
+L_OrderResult::NO_SIMUL_OPEN_CLOSE 
+L_SecFlag::EQUITY 
+L_SecFlag::FUTURE 
+L_SecFlag::OPTION 
+L_SecFlag::ANY 
+L_SecFlag::NONE 
+L_PosFlag::LONG 
+L_PosFlag::SHORT 
+L_PosFlag::FLAT 
+L_PosFlag::ANY 
+L_PosFlag::NONE 
+L_DayFlag::DAY 
+L_DayFlag::NONDAY 
+L_DayFlag::ANY 
+L_DayFlag::NONE 
+L_SideFlag::BUY 
+L_SideFlag::SELL 
+L_SideFlag::ANY 
+L_SideFlag::NONE 
+L_Side::BUY = 'B' 
+L_Side::SELL = 'S' 
+L_Side::SHORT = 'T' 
+L_TIF::IOC = 0 
+L_TIF::GTC = 99996 
+L_TIF::FOK = 99997 
+L_TIF::DAY = 99999 
+L_Liquidity::Add = 'A' 
+L_Liquidity::Remove = 'R' 
+L_L2Source::Nasdaq = 'Q' 
+L_L2Source::National = 'N' 
+L_Source::NASQ = 'Q' 
+L_Source::ADF = 'D' 
+L_Source::UTP = 'U' 
+L_Source::NATIONAL = 'N' 
+L_Source::DIRECT = ' ' 
+L_TradeChange::Last = 0x0001 
+L_TradeChange::Low = 0x0002 
+L_TradeChange::High = 0x0004 
+L_TradeChange::Print = 0x0008 
+L_Market::MorningBefore 
+L_Market::Premarket  
+L_Market::Preopening  
+L_Market::RegSessionOpen 
+L_Market::ExtSessionOpen 
+L_Market::Closed  
+L_Market::Halted 
+L_Market::Resumed 
+L_Borrowable::Unknown  
+L_Borrowable::Easy   
+= 'M' 
+= 'J' 
+= 'P' 
+= 'F' 
+= 'G' 
+= 'D' 
+= 'H' 
+= 'I' 
+= -1 
+= 0 
+L_Borrowable::Hard   
+L_Borrowable::Threshold  
+DLL Exports 
+LSEXPORT void LSInitInstance(); 
+= 1 
+= 2 
+Add a function of the above declaration to one of your modules to provide an entry point for Lightspeed Trader 
+to call after the extension DLL is successfully loaded into the Lightspeed Trader process.  This export is optional but very 
+useful nrvsidr DllMain, and the MFC extension startup, CWinApp::InitInstance, are called during DLL loading, a 
+time when certain resources are still uninitialized.  Leaving only simple initialization processes in DllMain and 
+CWinApp::InitInstance and creating extension resources instead from LSInitInstance will lead to fewer 
+initialization problems. 
+LSEXPORT void LSExitInstance(); 
+Add a function of the above declaration to one of your modules to provide an entry point for Lightspeed Trader 
+to call before the extension DLL is unloaded from the Lightspeed Trader process.  The extension can destroy/release 
+objects that keep the extension alive, such as custom messages, strands and remote strand observers.  In the case of 
+remote strand observers, it is sufficient to initiate the distruction, with C_QueueDelete for example.  Lightspeed will 
+wait for these destruction processes to complete before unloading the DLL. 
+LSEXPORT BOOL LSPreTranslateMessage(MSG *pMsg); 
+Add a function of the above declaration to statically linked MFC extensions.  As static linking is the 
+recommended project configuration for libraries and frameworks, this is an important function to provide in MFC 
+extensions.  Without this call MFC extensions will not receive PreTranslateMessage calls, which are useful not only 
+for the extension developer but are heavily used in MFC classes themselves.  The implementation of 
+LSPreTranslateMessage should simply call the extension’s CWinApp object’s PreTranslateMessage method. 
+LSEXPORT void LSEventLoopProc(); 
+Add a function of the above declaration to create your own main extension thread event loop.  This is used, for 
+example, by the QtChart sample in LSQtConnect.cpp.  This is optional, and a basic event loop is already provided without 
+this.  LSEventLoopProc is only required in particular, custom circumstances. 
+Macros 
+#define LSEXPORT extern "C" __declspec(dllexport) 
+LS_API_VERSION_1 
+LS_API_VERSION_2 
+LS_API_VERSION_3 
+LS_API_VERSION_4 
+The LS_API_VERSION_1,2,3,4 macros specify the library version.  If an extension is linked against one 
+version of the API, and the version of Lightspeed it is loaded on supports only an older version of the API, the extension 
+DLL will not load.  Also, certain versions of the API may gradually become deprecated as Lightspeed Trader and the 
+Lightspeed backend servers are upgraded. 
+Normally it will not be necessary to rebuild an extension when upgrading the Lightspeed Trader frontend, while 
+compiling an extension with a new version of the API will likely require a new version of the Lightspeed Trader frontend. 
+Copyright © 2001-2018 Lightspeed Financial, Inc. All rights reserved. 
+
+eso es la documentacion de una api de lightspeed
+
+quiero que me digas como obtengo todas las posiciones abiertas
