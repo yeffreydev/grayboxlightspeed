@@ -128,7 +128,9 @@ void StartHttpApp()
                     // Crear un JSON object para la posición
 
                     crow::json::wvalue position_json;
-                    position_json["symbol"] = (*it)->L_Symbol(),
+                    position_json["symbol"] = (*it)->L_Symbol(),//symbol
+                    position_json["shares"] = (*it)->L_Shares(),//quantity
+                    position_json["entry_price"] = (*it)->L_AveragePrice(),//entry price
                         // Agregar el JSON object a la lista de posiciones
                     vec.push_back(position_json);
                         
