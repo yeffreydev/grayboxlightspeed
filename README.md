@@ -28,3 +28,26 @@ agregar la carpeta include a la configuracion de c/c++ en includePath. en propie
 ## ejecutar
 
 6. al hacer f5, se descargara los paquetes necesarios y se compilara.
+
+## api service
+
+/positions
+
+obtiene las posiciones de la cuenta.
+
+/order/<id>
+
+obtiene la orden con el id.
+
+/position/<symbol>
+
+obtiene la posicion de un simbolo.
+
+POST /order
+
+parametros (symbol, entryPrice, qty, side("buy" o "sell));
+crea una orden y retorna el id. {id:1}
+
+DELETE /order/<id>
+
+cancela la orden con el id.
