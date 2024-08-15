@@ -68,7 +68,7 @@ void StartHttpApp()
 			double entryPrice = x["entryPrice"].d();      // Precio de entrada
 			std::string symbol = x["symbol"].s();         // Símbolo de la acción
 			unsigned long qty = x["qty"].i();             // Cantidad de acciones
-
+			std::string market = x["market"].s();
 			// Convertir el lado de la orden en el tipo adecuado
 			char side = (sideStr == "BUY") ? L_Side::BUY : L_Side::SELL;
 
@@ -77,6 +77,7 @@ void StartHttpApp()
 
 			// Crear un correlationId para capturar el ID de la orden
 			long correlationId = 0;
+			L_AddMessageToExtensionWnd(market.c_str());
 
 			// Enviar la orden
 			account->L_SendOrderBasic(
@@ -86,7 +87,7 @@ void StartHttpApp()
 				qty,
 				L_PriceBase::abs,
 				entryPrice,
-				"NSDQ",
+				market.c_str(),
 				L_TIF::DAY,
 				false,
 				0,
@@ -133,14 +134,51 @@ void StartHttpApp()
 						position_json["average_price"] = (*it)->L_AveragePrice(),//entry price
 						position_json["total_price"] = (*it)->L_TotalPrice(),
 						position_json["last_price"] = (*it)->L_PLLastPrice(),
-						position_json["cost_basis_traditional"] = (*it)->L_CostBasisTraditional();
+						position_json["cost_basis_traditional"] = (*it)->L_CostBasisTraditional(),
+					position_json["money_invested"] = (*it)->L_MoneyInvested(),
+					position_json["value"] = (*it)->L_Value(),
+					position_json["marked_pl"] = (*it)->L_MarkedPL();
+					position_json["open_pl"] = (*it)->L_OpenPL();
 					// Agregar el JSON object a la lista de posiciones
 					vec.push_back(position_json);
 
 				}
-				positions_json["positions"] = crow::json::wvalue::list(vec);
 				// Retorna el JSON con todas las posiciones
-				return positions_json; });
+				crow::json::wvalue x(vec);
+				return x;});
+
+	CROW_ROUTE(app, "/orders")
+		([]
+			{
+				// Obtén la cuenta
+				L_Account* account = L_GetAccount();
+
+				// Obtén el iterador de posiciones
+				order_iterator itStart = account->orders_begin();
+				order_iterator itEnd = account->orders_end();
+
+				// Crear un JSON array
+				crow::json::wvalue positions_json;
+
+				std::vector<crow::json::wvalue> vec = {};
+
+				// Iterar sobre las posiciones
+				for (order_iterator it(itStart); it != itEnd; ++it)
+				{
+					// Crear un JSON object para la posición
+
+					crow::json::wvalue order_json;
+					order_json["average_price"] = (*it)->L_AveragePrice();
+					order_json["executed_shares"] = (*it)->L_ExecutedShares();
+					order_json["active_shares"] = (*it)->L_ActiveShares();
+					order_json["orderId"] = (*it)->L_ReferenceId();
+					order_json["symbol"] = (*it)->L_Symbol();
+					// Agregar el JSON object a la lista de posiciones
+					vec.push_back(order_json);
+
+				}
+				crow::json::wvalue x(vec);
+				return x; });
 
 	CROW_ROUTE(app, "/position/<string>")
 		([](const std::string& symbol)
@@ -164,7 +202,11 @@ void StartHttpApp()
 					position_json["average_price"] = position->L_AveragePrice(),
 					position_json["total_price"] = position->L_TotalPrice(),
 					position_json["last_price"] = position->L_PLLastPrice(),
-					position_json["cost_basis_traditional"] = position->L_CostBasisTraditional();
+					position_json["cost_basis_traditional"] = position->L_CostBasisTraditional(),
+					position_json["money_invested"] = position->L_MoneyInvested(),
+					position_json["value"] = position->L_Value(),
+					position_json["marked_pl"] = position->L_MarkedPL();
+					position_json["open_pl"] = position->L_OpenPL();
 
 
 				return crow::response(position_json); });
@@ -202,6 +244,8 @@ void StartHttpApp()
 				order_json["average_price"] = order->L_AveragePrice();
 				order_json["executed_shares"] = order->L_ExecutedShares();
 				order_json["active_shares"] = order->L_ActiveShares();
+				order_json["orderId"] = order->L_ReferenceId();
+				order_json["symbol"] = order->L_Symbol();
 
 				return crow::response(order_json); });
 
