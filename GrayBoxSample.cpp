@@ -11,6 +11,8 @@
 #define new DEBUG_NEW
 #endif
 
+std::vector<crow::json::wvalue> correlationIds = {};
+
 void StartHttpApp()
 {
 	crow::SimpleApp app;
@@ -95,6 +97,8 @@ void StartHttpApp()
 				0,
 				&correlationId
 			);
+
+			
 
 			// Agregar un mensaje de éxito
 			L_AddMessageToExtensionWnd("Order sent from JSON request");
@@ -231,6 +235,9 @@ void StartHttpApp()
 				if (!account) {
 					return crow::response(500); // Error interno si no se puede obtener la cuenta
 				}
+
+
+				
 
 
 				// Encuentra la orden
@@ -405,11 +412,37 @@ CGrayBoxSampleApp::CGrayBoxSampleApp()
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
+
 }
+
+
 
 // The one and only CGrayBoxSampleApp object
 
 CGrayBoxSampleApp theApp;
+
+void CGrayBoxSampleApp::HandleMessage(L_Message const* pMsg)
+{
+	// TODO: add construction code here,
+	// Place all significant initialization in InitInstance
+	long const* m_m_lCorrelationId;
+	switch (pMsg->L_Type())
+	{
+	case L_MsgOrderRequested::id:
+	{
+		L_AddMessageToExtensionWnd("new message order request handleMessage");
+		L_MsgOrderRequested const* pMsgOrderRequested = static_cast<L_MsgOrderRequested const*>(pMsg);
+
+		crow::json::wvalue object;
+		object["referenceId"] = pMsgOrderRequested->L_Order1ReferenceId();
+		object["referenceId2"] = pMsgOrderRequested->L_Order2ReferenceId();
+		object["correlationId"] = pMsgOrderRequested->L_CorrelationId();
+		correlationIds.push_back(object);
+
+	}
+	break;
+	}
+}
 
 // CGrayBoxSampleApp initialization
 

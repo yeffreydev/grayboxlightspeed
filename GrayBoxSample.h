@@ -14,7 +14,7 @@
 // See GrayBoxSample.cpp for the implementation of this class
 //
 
-class CGrayBoxSampleApp : public CWinApp
+class CGrayBoxSampleApp : public CWinApp, public L_Observer
 {
 public:
 	CGrayBoxSampleApp();
@@ -25,6 +25,8 @@ public:
 // Overrides
 public:
 	virtual BOOL InitInstance();
-
+	L_Message const* gpMsg;
+	// L_Observer
+	void HandleMessage(L_Message const* msg) override;
 	DECLARE_MESSAGE_MAP()
 };
