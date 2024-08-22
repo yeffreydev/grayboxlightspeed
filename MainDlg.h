@@ -23,6 +23,7 @@ protected:
 	void HandleMessage(L_Message const *msg) override;
 
 	void OnOK() override {}
+	
 	void OnCancel() override {}
 
 	DECLARE_MESSAGE_MAP()
@@ -30,6 +31,7 @@ public:
 	afx_msg void OnNcDestroy();
 	afx_msg void OnClose();
 	afx_msg void OnBnClickedSendOrder();
+
 
 	L_Account *account;
 };

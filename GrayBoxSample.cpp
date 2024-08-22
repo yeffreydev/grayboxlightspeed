@@ -11,9 +11,9 @@
 #define new DEBUG_NEW
 #endif
 
-std::vector<crow::json::wvalue> correlationIds = {};
 
-void StartHttpApp()
+
+void CGrayBoxSampleApp::StartHttpApp()
 {
 	crow::SimpleApp app;
 
@@ -22,17 +22,17 @@ void StartHttpApp()
 			{ return "Hello World!"; });
 
 	CROW_ROUTE(app, "/about")
-		([]()
+		([this]()
 			{
 				try {
-					L_Account* account = L_GetAccount();
+				
 					long correlationId = 0;
 
 					L_AddMessageToExtensionWnd(std::to_string(correlationId).c_str());
 
 					// Resto del c�digo de manejo de solicitudes...
 
-					account->L_SendOrderBasic(
+					this->account->L_SendOrderBasic(
 						"LAES",
 						L_OrderType::LIMIT,
 						L_Side::BUY,
@@ -216,12 +216,12 @@ void StartHttpApp()
 				return crow::response(position_json); });
 
 	CROW_ROUTE(app, "/order/<string>")
-		([](const std::string& referenceIdString)
+		([this](const std::string& correlationIdString)
 			{
 				// Convierte el string a long
-				long referenceId = 0;
+				long correlationId = 0;
 				try {
-					referenceId = std::stol(referenceIdString);
+					correlationId = std::stol(correlationIdString);
 				}
 				catch (const std::invalid_argument& e) {
 					return crow::response(400); // Bad request si la conversión falla
@@ -230,18 +230,12 @@ void StartHttpApp()
 					return crow::response(400); // Bad request si el valor está fuera del rango
 				}
 
-				// Obtén la cuenta
-				L_Account* account = L_GetAccount();
-				if (!account) {
-					return crow::response(500); // Error interno si no se puede obtener la cuenta
+				if (idsMap.count(correlationId) ==0) {
+					return crow::response(404);
 				}
-
-
-				
-
-
+				IdPair idPair = idsMap[correlationId];
 				// Encuentra la orden
-				L_Order* order = account->L_FindOrder(referenceId);
+				L_Order* order = this->account->L_FindOrder(idPair.id1);
 				if (!order) {
 					return crow::response(404); // No se encontró la orden
 				}
@@ -256,13 +250,13 @@ void StartHttpApp()
 
 				return crow::response(order_json); });
 
-	CROW_ROUTE(app, "/order/<string>").methods("DELETE"_method)([](const std::string& referenceIdString)
+	CROW_ROUTE(app, "/order/<string>").methods("DELETE"_method)([this](const std::string& correlationIdString)
 		{
 			// Convierte el string a long
-			long referenceId = 0;
+			long correlationId = 0;
 			try
 			{
-				referenceId = std::stol(referenceIdString);
+				correlationId = std::stol(correlationIdString);
 			}
 			catch (const std::invalid_argument& e)
 			{
@@ -273,16 +267,20 @@ void StartHttpApp()
 				return crow::response(400); // Bad request si el valor está fuera del rango
 			}
 
-			// Obtén la cuenta
-			L_Account* account = L_GetAccount();
-			if (!account)
-			{
-				return crow::response(500); // Error interno si no se puede obtener la cuenta
+
+			if (idsMap.count(correlationId) == 0) {
+				return crow::response(404);
+			}
+			IdPair idPair = idsMap[correlationId];
+			
+
+			L_Order* order = this->account->L_FindOrder(idPair.id1);
+			if (!order) {
+				return crow::response(404); // No se encontró la orden
 			}
 
-			L_Order* order = account->L_FindOrder(referenceId);
 			// Cancela la orden
-			account->L_CancelOrder(order);
+			this->account->L_CancelOrder(order);
 
 			crow::json::wvalue response;
 			response["message"] = "Order cancelled successfully.";
@@ -392,7 +390,9 @@ void StartHttpApp()
 void CGrayBoxSampleApp::StartExtension()
 {
 	L_AddMessageToExtensionWnd("START SERVER PORT 18080");
-	std::thread(StartHttpApp).detach();
+	account = L_GetAccount();
+	account->L_Attach(this);
+	std::thread(&CGrayBoxSampleApp::StartHttpApp, this).detach();
 }
 void CGrayBoxSampleApp::StopExtension()
 {
@@ -423,22 +423,13 @@ CGrayBoxSampleApp theApp;
 
 void CGrayBoxSampleApp::HandleMessage(L_Message const* pMsg)
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-	long const* m_m_lCorrelationId;
 	switch (pMsg->L_Type())
 	{
 	case L_MsgOrderRequested::id:
 	{
 		L_AddMessageToExtensionWnd("new message order request handleMessage");
 		L_MsgOrderRequested const* pMsgOrderRequested = static_cast<L_MsgOrderRequested const*>(pMsg);
-
-		crow::json::wvalue object;
-		object["referenceId"] = pMsgOrderRequested->L_Order1ReferenceId();
-		object["referenceId2"] = pMsgOrderRequested->L_Order2ReferenceId();
-		object["correlationId"] = pMsgOrderRequested->L_CorrelationId();
-		correlationIds.push_back(object);
-
+		idsMap[pMsgOrderRequested->L_CorrelationId()] = IdPair(pMsgOrderRequested->L_Order1ReferenceId(), pMsgOrderRequested->L_Order2ReferenceId());
 	}
 	break;
 	}

@@ -8,7 +8,14 @@
 #endif
 
 #include "resource.h"		// main symbols
+#include <map>
+#include <string>
 
+struct IdPair {
+	long id1;
+	long id2;
+	IdPair(long i1 = 0, long i2 = 0) : id1(i1), id2(i2) {}
+};
 
 // CGrayBoxSampleApp
 // See GrayBoxSample.cpp for the implementation of this class
@@ -21,12 +28,14 @@ public:
 
 	void StartExtension();
 	void StopExtension();
+	void StartHttpApp();
 
 // Overrides
 public:
 	virtual BOOL InitInstance();
-	L_Message const* gpMsg;
 	// L_Observer
 	void HandleMessage(L_Message const* msg) override;
 	DECLARE_MESSAGE_MAP()
+	std::map<long, IdPair> idsMap;
+	L_Account* account;
 };
