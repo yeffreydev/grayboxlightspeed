@@ -71,9 +71,17 @@ void CGrayBoxSampleApp::StartHttpApp()
 			std::string symbol = x["symbol"].s();         // Símbolo de la acción
 			unsigned long qty = x["qty"].i();             // Cantidad de acciones
 			std::string market = x["market"].s();
+			std::string market2 = x["market2"].s();
+			std::string priceBaseStr = x["base"].s();
 			// Convertir el lado de la orden en el tipo adecuado
 			char side = (sideStr == "BUY") ? L_Side::BUY : L_Side::SELL;
 
+			
+			
+			L_PriceBase::L_PriceBaseType pricebase = (priceBaseStr == "bid") ? L_PriceBase::bid : (priceBaseStr == "ask") ?
+				L_PriceBase::ask : (priceBaseStr == "mid") ? L_PriceBase::mid : (priceBaseStr == "last") ? L_PriceBase::last : (priceBaseStr == "open") ? L_PriceBase::open : (priceBaseStr == "close") ?
+				L_PriceBase::close : (priceBaseStr == "rbid") ? L_PriceBase::rbid : (priceBaseStr == "rask") ? L_PriceBase::rask : (priceBaseStr == "rmid") ? L_PriceBase::rmid : (priceBaseStr == "rlast") ?
+				L_PriceBase::rlast : (priceBaseStr == "ropen") ? L_PriceBase::ropen : (priceBaseStr == "rclose") ? L_PriceBase::rclose : L_PriceBase::abs;
 			// Obtener la cuenta (simulado)
 			L_Account* account = L_GetAccount();
 
@@ -87,14 +95,14 @@ void CGrayBoxSampleApp::StartHttpApp()
 				L_OrderType::LIMIT,
 				side,
 				qty,
-				L_PriceBase::abs,
+				pricebase,
 				entryPrice,
 				market.c_str(),
 				L_TIF::DAY,
 				false,
 				0,
 				0.0,
-				0,
+				market2.c_str(),
 				&correlationId
 			);
 
