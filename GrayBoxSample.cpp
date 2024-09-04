@@ -71,10 +71,27 @@ void CGrayBoxSampleApp::StartHttpApp()
 			std::string symbol = x["symbol"].s();         // Símbolo de la acción
 			unsigned long qty = x["qty"].i();             // Cantidad de acciones
 			std::string market = x["market"].s();
+			std::string orderTypeStr = x["ordertype"].s();
 			std::string market2 = x["market2"].s();
 			std::string priceBaseStr = x["pricebase"].s();
 			// Convertir el lado de la orden en el tipo adecuado
 			char side = (sideStr == "BUY") ? L_Side::BUY : L_Side::SELL;
+
+			long orderType = (orderTypeStr == "MARKET") ? L_OrderType::MARKET :
+				(orderTypeStr == "LIMIT") ? L_OrderType::LIMIT :
+				(orderTypeStr == "STOP") ? L_OrderType::STOP :
+				(orderTypeStr == "MOC") ? L_OrderType::MOC :
+				(orderTypeStr == "LOC") ? L_OrderType::LOC :
+				(orderTypeStr == "CO") ? L_OrderType::CO :
+				(orderTypeStr == "LOCI") ? L_OrderType::LOCI :
+				(orderTypeStr == "MOO") ? L_OrderType::MOO :
+				(orderTypeStr == "LOO") ? L_OrderType::LOO :
+				(orderTypeStr == "LOOI") ? L_OrderType::LOOI :
+				(orderTypeStr == "ADDO") ? L_OrderType::ADDO :
+				(orderTypeStr == "NROT") ? L_OrderType::NROT :
+				(orderTypeStr == "PRIMARY_PEG") ? L_OrderType::PRIMARY_PEG :
+				(orderTypeStr == "MIDPOINT_PEG") ? L_OrderType::MIDPOINT_PEG :
+				-1; // Default value if no match is found
 
 			
 			
@@ -92,7 +109,7 @@ void CGrayBoxSampleApp::StartHttpApp()
 			// Enviar la orden
 			account->L_SendOrderBasic(
 				symbol.c_str(),
-				L_OrderType::LIMIT,
+				orderType,
 				side,
 				qty,
 				pricebase,
