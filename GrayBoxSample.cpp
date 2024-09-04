@@ -72,7 +72,7 @@ void CGrayBoxSampleApp::StartHttpApp()
 			unsigned long qty = x["qty"].i();             // Cantidad de acciones
 			std::string market = x["market"].s();
 			std::string market2 = x["market2"].s();
-			std::string priceBaseStr = x["base"].s();
+			std::string priceBaseStr = x["pricebase"].s();
 			// Convertir el lado de la orden en el tipo adecuado
 			char side = (sideStr == "BUY") ? L_Side::BUY : L_Side::SELL;
 
